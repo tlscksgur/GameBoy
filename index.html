@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Pocket 100</title>
+<style>
+  :root { --body:#e8573f; --body-dark:#b93c28; --bezel:#2b2d3a; --btn:#2a2a33; --ab:#ffd23f; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
+  body { margin:0; min-height:100vh; display:grid; place-items:center; background:#1a1b26; font-family:system-ui,sans-serif; }
+  .console { width:min(380px,100vw - 32px); margin:16px; padding:22px 20px 30px; background:var(--body);
+    border-radius:22px 22px 60px 22px; box-shadow:inset -6px -8px 0 var(--body-dark), 0 20px 40px #0008; }
+  .bezel { background:var(--bezel); border-radius:12px 12px 36px 12px; padding:18px 18px 10px; }
+  canvas { display:block; width:100%; aspect-ratio:160/144; background:#0d1021; image-rendering:pixelated; border-radius:3px; }
+  .brand { color:#9aa0b8; font:italic 700 12px system-ui; letter-spacing:2px; margin-top:8px; }
+  .controls { display:flex; justify-content:space-between; align-items:center; margin-top:28px; }
+  .dpad { position:relative; width:120px; height:120px; }
+  .dpad button { position:absolute; width:40px; height:40px; background:var(--btn); border:0; border-radius:6px; }
+  .dpad [data-k=up]{left:40px;top:0} .dpad [data-k=down]{left:40px;bottom:0}
+  .dpad [data-k=left]{left:0;top:40px} .dpad [data-k=right]{right:0;top:40px}
+  .dpad::after { content:""; position:absolute; left:40px; top:40px; width:40px; height:40px; background:var(--btn); }
+  .ab { display:flex; gap:14px; transform:rotate(-20deg); }
+  .ab button { width:54px; height:54px; border-radius:50%; border:0; background:var(--ab); font-weight:800; color:#7a5a00; box-shadow:0 4px 0 #b8901a; }
+  .sys { display:flex; justify-content:center; gap:22px; margin-top:26px; }
+  .sys button { width:58px; height:14px; border-radius:7px; border:0; background:#555a6e; }
+  .sys span { display:block; text-align:center; font-size:10px; color:#4a1a10; font-weight:700; margin-top:4px; letter-spacing:1px; }
+  button { cursor:pointer; touch-action:none; }
+  button.on { filter:brightness(1.4); transform:translateY(2px); }
+  .help { color:#6b6f85; font-size:12px; text-align:center; margin-top:12px; }
+</style>
+</head>
+<body>
+<div>
+  <div class="console">
+    <div class="bezel">
+      <canvas id="scr" width="320" height="288"></canvas>
+      <div class="brand">POCKET 100 · 100 GAMES IN 1</div>
+    </div>
+    <div class="controls">
+      <div class="dpad">
+        <button data-k="up" aria-label="위"></button><button data-k="down" aria-label="아래"></button>
+        <button data-k="left" aria-label="왼쪽"></button><button data-k="right" aria-label="오른쪽"></button>
+      </div>
+      <div class="ab"><button data-k="b">B</button><button data-k="a">A</button></div>
+    </div>
+    <div class="sys">
+      <div><button data-k="select" aria-label="Select"></button><span>SELECT</span></div>
+      <div><button data-k="start" aria-label="Start"></button><span>START</span></div>
+    </div>
+  </div>
+  <div class="help">키보드: 방향키 · Z/Space=A · X=B · Enter=Start · Shift=Select(메뉴로)</div>
+</div>
+<script src="games.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
