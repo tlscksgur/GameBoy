@@ -43,12 +43,13 @@ const E = {
     const PH = p.ph || 24;
     let py = 66, cy = 66, b, ps = 0, cs = 0;
     const serve = dir => { b = { x: 80, y: 78, vx: p.bs * dir, vy: (Math.random() - .5) * p.bs }; };
-    const bounce = (y, side) => { b.vx = Math.min(Math.abs(b.vx) * 1.06, 4.5) * side; b.vy = (b.y + 1.5 - y - PH / 2) / (PH / 2) * 2; };
+    // angle grows with ball speed so edge hits can outrun the CPU paddle
+    const bounce = (y, side) => { const sp = Math.min(Math.abs(b.vx) * 1.06, 4.5); b.vx = sp * side; b.vy = (b.y + 1.5 - y - PH / 2) / (PH / 2) * sp * 1.2; };
     serve(1);
     return {
       update() {
-        py = clamp(py + (K('down') - K('up')) * 2.5, 14, 144 - PH);
-        cy = clamp(cy + clamp(b.y - cy - PH / 2, -p.cpu, p.cpu), 14, 144 - PH);
+        py = clamp(py + (K('down') - K('up')) * 3, 14, 144 - PH);
+        cy = clamp(cy + clamp((b.vx > 0 ? b.y : 78) - cy - PH / 2, -p.cpu, p.cpu), 14, 144 - PH); // CPU only chases incoming balls
         b.x += b.vx; b.y += b.vy;
         if (b.y < 14 || b.y > 141) { b.vy = -b.vy; b.y = clamp(b.y, 14, 141); }
         if (b.vx < 0 && b.x <= 8 && b.x >= 2 && b.y + 3 >= py && b.y <= py + PH) bounce(py, 1);
@@ -367,13 +368,17 @@ const E = {
   },
 
   catch: p => {
-    let x = 72, sc = 0, lives = 3, f = 0;
+    let x = 72, sc = 0, lives = 3, f = 0, last = 72;
     const it = [];
     return {
       update() {
         x = clamp(x + (K('right') - K('left')) * 3, 0, 144);
         const lv = 1 + ++f / 3600;
-        if (Math.random() < p.rate * lv) it.push({ x: rnd(152), y: 4, bad: Math.random() < p.bad, v: p.vy * lv });
+        // strict (missing costs a life): fixed rhythm and each drop within reach of the last one
+        if (p.strict ? f % 50 == 0 : Math.random() < p.rate * lv) {
+          last = p.strict ? clamp(last + rnd(121) - 60, 0, 152) : rnd(152);
+          it.push({ x: last, y: 4, bad: Math.random() < p.bad, v: p.vy * lv });
+        }
         for (let i = it.length; i--;) {
           const o = it[i]; o.y += o.v;
           if (o.y + 8 >= 130 && o.y < 136 && o.x + 8 > x && o.x < x + 16) {
@@ -659,8 +664,8 @@ const GAMES = [
   ['catch', 'Fruit Catch', { rate: .03, vy: 1, bad: .15 }],
   ['catch', 'Fruit Rush', { rate: .06, vy: 1.6, bad: .15 }],
   ['catch', 'Bomb Catch', { rate: .05, vy: 1.2, bad: .45 }],
-  ['catch', 'Careful Catch', { rate: .03, vy: 1.2, bad: .1, strict: 1 }],
-  ['catch', 'Storm Catch', { rate: .08, vy: 2, bad: .3, strict: 1 }],
+  ['catch', 'Careful Catch', { vy: 1, bad: .1, strict: 1 }],
+  ['catch', 'Storm Catch', { rate: .07, vy: 1.8, bad: .3 }],
   ['maze', 'Maze Small', { c: 8, r: 6, time: 60 }],
   ['maze', 'Maze Medium', { c: 12, r: 9, time: 90 }],
   ['maze', 'Maze Large', { c: 20, r: 16, time: 150 }],

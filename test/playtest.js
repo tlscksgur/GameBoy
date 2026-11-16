@@ -1,0 +1,87 @@
+// Bot playtest: simple bots play the action games by reading what draw() paints, then report
+// win / game over / survival time. Run: node test/playtest.js
+const fs = require('fs'), vm = require('vm'), path = require('path');
+let rects = [], texts = [];
+const ctx = new Proxy({ fillStyle: '' }, {
+  get: (o, k) => k == 'fillRect' ? (x, y, w, h) => rects.push({ x, y, w, h, c: o.fillStyle })
+    : k == 'fillText' ? (s, x, y) => texts.push({ s: String(s), x, y }) : k in o ? o[k] : () => {},
+  set: (o, k, v) => (o[k] = v, true),
+});
+const sb = { document: { getElementById: () => ({ getContext: () => ctx }), querySelectorAll: () => [] },
+  addEventListener() {}, requestAnimationFrame() {}, performance, localStorage: { getItem: () => null, setItem() {} }, console, Math };
+vm.createContext(sb);
+for (const f of ['games.js', 'main.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), sb, { filename: f });
+const G = vm.runInContext('({ GAMES, start, tick, press, get mode() { return mode }, get result() { return result }, draw: () => cur.draw() })', sb);
+
+const find = (c, w, h) => rects.filter(r => r.c == c && (w == null || r.w == w) && (h == null || r.h == h));
+const near = (a, b, d) => Math.abs(a - b) < d;
+// Each bot sees the frame and returns { hold: [...keys], tap: [...keys] }
+const BOTS = {
+  pong() { const b = find('#fff', 3, 3)[0], p = find('#4cc9f0')[0]; if (!b || !p) return {};
+    const c = p.y + p.h / 2 + (b.x < 60 ? p.h / 3 : 0); return { hold: b.y + 1.5 < c - 3 ? ['up'] : b.y + 1.5 > c + 3 ? ['down'] : [] }; },
+  bricks() { const b = find('#fff', 3, 3)[0], p = find('#4cc9f0').find(r => r.y == 136); if (!p) return {};
+    if (!b) return { tap: ['a'] }; const c = p.x + p.w / 2, tx = b.x + 1.5 + (p.w / 4) * (Math.random() - .5);
+    return { tap: ['a'], hold: tx < c - 2 ? ['left'] : tx > c + 2 ? ['right'] : [] }; },
+  fly() { const y = find('#ffe66d', 6, 6)[0]?.y, pipes = find('#7ae582').filter(r => r.x + 14 >= 24);
+    const bottom = pipes.find(r => r.y > 12); const target = bottom ? bottom.y - 12 : 90;
+    return { tap: y > target ? ['a'] : [] }; },
+  run() { const pl = find('#ffe66d').find(r => r.x == 18); const ob = rects.filter(r => (r.c == '#7ae582' || r.c == '#ff8fd1') && r.x > 18 && r.x < 60);
+    const o = ob.sort((a, b) => a.x - b.x)[0]; if (!o || !pl) return {};
+    return o.c == '#ff8fd1' ? { hold: ['down'] } : o.x < 26 + 16 + 6 * (pl ? 1 : 0) ? { tap: ['a'] } : {}; },
+  dodge() { const p = find('#4cc9f0', 8, 8)[0]; if (!p) return {};
+    const obs = find('#ff8fd1'), risk = x => x < 0 || x > 152 ? 1e9 : obs.reduce((s, o) => s + (o.x < x + 10 && o.x + o.w > x - 2 && o.y > 40 ? o.y : 0), 0);
+    let bx = p.x, br = risk(p.x); for (let x = 0; x <= 152; x += 4) { const r = risk(x) + Math.abs(x - p.x) * 2; if (r < br) { br = r; bx = x; } }
+    return { hold: bx < p.x - 1 ? ['left'] : bx > p.x + 1 ? ['right'] : [] }; },
+  race() { const p = find('#4cc9f0').find(r => r.y == 120), road = find('#333')[0]; if (!p || !road) return {};
+    const w = Math.min(32, 140 / G.GAMES[cur][2].lanes | 0), cars = find('#ff5d5d', 10, 14);
+    const busy = x => cars.some(c => near(c.x, x, 4) && c.y > 40 && c.y < 136);
+    if (!busy(p.x)) return {};
+    if (p.x - w > road.x && !busy(p.x - w)) return { tap: ['left'] };
+    return p.x + w < road.x + road.w && !busy(p.x + w) ? { tap: ['right'] } : {}; },
+  hop() { const me = find('#7ae582', 6, 6)[0]; if (!me) return {};
+    const cars = rects.filter(r => r.h == 6 && r.w >= 8), px = me.x - 1, ly = me.y;
+    const free = (y, x, m) => !cars.some(c => c.y == y && c.x < x + 8 + m && c.x + c.w > x - m);
+    if (free(ly - 8, px, 18)) return { tap: ['up'] };
+    if (free(ly, px, 10)) return {};
+    for (const [k, dx] of [['left', -8], ['right', 8]]) if (px + dx >= 0 && px + dx <= 152 && free(ly, px + dx, 10)) return { tap: [k] };
+    return free(ly + 8, px, 10) ? { tap: ['down'] } : {}; },
+  ttt() { return { tap: [['up', 'down', 'left', 'right', 'a'][rnd5++ % 5 == 4 ? 4 : Math.random() * 4 | 0]] }; },
+  stack() { const top = rects.filter(r => r.h == 7); const mv = top.find(r => r.c == '#fff'), prev = top.filter(r => r.c != '#fff').sort((a, b) => a.y - b.y)[0];
+    return mv && prev && Math.abs(mv.x - prev.x) < 1.6 ? { tap: ['a'] } : {}; },
+  shoot() { const p = find('#7ae582', 8, 8)[0], en = rects.filter(r => r.w == 10 && r.h == 6), eb = find('#ff5d5d', 2, 4); if (!p) return {};
+    if (eb.some(b => b.y > 90 && b.x + 2 > p.x - 4 && b.x < p.x + 12)) return { hold: [p.x > 80 ? 'left' : 'right'], tap: ['a'] };
+    const t = en.sort((a, b) => b.y - a.y || Math.abs(a.x - p.x) - Math.abs(b.x - p.x))[0]; if (!t) return {};
+    return { hold: t.x + 2 < p.x ? ['left'] : t.x + 2 > p.x + 2 ? ['right'] : [], tap: ['a'] }; },
+  catch() { const p = find('#c8874a')[0]; if (!p) return {};
+    const good = find('#7ae582', 8, 8), bad = find('#ff5d5d', 8, 8), over = (o, x) => o.x + 8 > x + 2 && o.x < x + 14, near = (o, x) => o.x + 8 > x - 2 && o.x < x + 18;
+    // score each basket spot: avoid bombs about to land, prefer the lowest fruit reachable in time
+    const val = x => bad.reduce((s, o) => s - (near(o, x) && o.y > 80 ? 1000 : 0), 0) + good.reduce((s, o) => s + (over(o, x) && Math.abs(x - p.x) / 3 < (130 - o.y) / 1.2 ? o.y : 0), 0) - Math.abs(x - p.x) / 10;
+    let bx = p.x, bv = val(p.x); for (let x = 0; x <= 144; x += 4) { const v = val(x); if (v > bv) { bv = v; bx = x; } }
+    return { hold: bx < p.x - 2 ? ['left'] : bx > p.x + 2 ? ['right'] : [] }; },
+  snake() { const head = find('#c6ffcb')[0], food = find('#ff5d5d', 6, 6)[0]; if (!head || !food) return {};
+    const body = new Set([...find('#7ae582', 7, 7), ...find('#666')].map(r => r.x + ',' + r.y)), hx = head.x, hy = head.y, fx = food.x - 1, fy = food.y - 1;
+    const ok = (x, y) => x >= 0 && x < 160 && y >= 16 && y < 144 && !body.has(x + ',' + y);
+    const opts = [['left', -8, 0], ['right', 8, 0], ['up', 0, -8], ['down', 0, 8]].filter(([, dx, dy]) => ok(hx + dx, hy + dy));
+    opts.sort((a, b) => (Math.abs(hx + a[1] - fx) + Math.abs(hy + a[2] - fy)) - (Math.abs(hx + b[1] - fx) + Math.abs(hy + b[2] - fy)));
+    return opts.length ? { tap: [opts[0][0]] } : {}; },
+};
+let cur = 0, rnd5 = 0;
+const MAX = 60 * 60 * 3; // 3 minutes per game
+const rows = [];
+G.GAMES.forEach(([eng, name, p], i) => {
+  const bot = BOTS[eng]; if (!bot) return;
+  cur = i; for (const k of ['up', 'down', 'left', 'right', 'a', 'b']) G.press(k, 0);
+  G.start(i); let f = 0, held = new Set();
+  for (; f < MAX && G.mode == 'play'; f++) {
+    rects = []; texts = []; G.draw();
+    const { hold = [], tap = [] } = bot();
+    for (const k of ['up', 'down', 'left', 'right', 'a']) {
+      if (tap.includes(k)) { if (held.has(k)) { G.press(k, 0); held.delete(k); } else { G.press(k, 1); held.add(k); } }
+      else if (hold.includes(k)) { if (!held.has(k)) { G.press(k, 1); held.add(k); } }
+      else if (held.has(k)) { G.press(k, 0); held.delete(k); }
+    }
+    G.tick();
+  }
+  rows.push([eng == 'ttt' ? texts.find(t => t.s.startsWith('WIN'))?.s : '',String(i + 1).padStart(3), name.padEnd(18), G.mode == 'play' ? 'TIMEOUT(살아남음)' : G.result.won ? 'CLEAR' : 'OVER', 'score ' + (G.mode == 'play' ? '-' : G.result.sc), (f / 60).toFixed(1) + 's'].join('  '));
+});
+console.log(rows.join('\n'));
