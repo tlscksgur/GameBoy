@@ -35,7 +35,7 @@ let mode = 'menu', sel = 0, gi = 0, cur = null, paused = false, result = null, b
 try { best = JSON.parse(localStorage.getItem('pocket100-best')) || {}; } catch {}
 const start = i => { gi = i; cur = E[GAMES[i][0]](GAMES[i][2]); mode = 'play'; paused = false; };
 const finish = (sc, won) => {
-  result = { sc, won, nb: sc > (best[gi] || 0) };
+  result = { sc, won, nb: sc > (best[gi] || 0), t: 0 };
   if (result.nb) { best[gi] = sc; try { localStorage.setItem('pocket100-best', JSON.stringify(best)); } catch {} }
   mode = 'over';
 };
@@ -53,7 +53,8 @@ function update() {
     if (P('select')) { mode = 'menu'; return; }
     if (P('start')) paused = !paused;
     if (!paused) cur.update();
-  } else if (P('a') || P('start')) start(gi);
+  } else if (++result.t < 30) return; // ignore buttons briefly so mashing A doesn't skip the score
+  else if (P('a') || P('start')) start(gi);
   else if (P('b') || P('select')) mode = 'menu';
 }
 

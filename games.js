@@ -10,16 +10,19 @@ const moveCursor = (c, C, RW) => { for (const k in DIRS) if (P(k)) { c.x = clamp
 const E = {
   snake: p => {
     const C = 20, RW = 16, obs = [];
-    let s = [[5, 8], [4, 8], [3, 8]], d = [1, 0], q = d, t = 0, sc = 0;
+    let s = [[5, 8], [4, 8], [3, 8]], d = [1, 0], q = [], t = 0, sc = 0; // q: up to 2 buffered turns
     const hit = (a, x, y) => a.some(c => c[0] == x && c[1] == y);
     while (obs.length < (p.obs || 0)) { const o = [rnd(C), rnd(RW)]; if (o[1] != 8 && !hit(obs, ...o)) obs.push(o); }
     const spot = () => { let x, y; do { x = rnd(C); y = rnd(RW); } while (hit(s, x, y) || hit(obs, x, y)); return [x, y]; };
     let f = spot();
     return {
       update() {
-        for (const k in DIRS) { const v = DIRS[k]; if (P(k) && (v[0] != -d[0] || v[1] != -d[1])) q = v; }
+        for (const k in DIRS) {
+          const v = DIRS[k], l = q[q.length - 1] || d;
+          if (P(k) && q.length < 2 && v[0] != -l[0] && v[1] != -l[1]) q.push(v); // perpendicular turns only
+        }
         if (++t < Math.max(2, p.spd - (sc / 60 | 0))) return;
-        t = 0; d = q;
+        t = 0; if (q.length) d = q.shift();
         let x = s[0][0] + d[0], y = s[0][1] + d[1];
         if (p.wrap) { x = (x + C) % C; y = (y + RW) % RW; } else if (x < 0 || y < 0 || x >= C || y >= RW) return end(sc);
         if (hit(s, x, y) || hit(obs, x, y)) return end(sc);
@@ -174,7 +177,7 @@ const E = {
 
   run: p => {
     const G = 120, gr = p.g || .25;
-    let y = G, vy = 0, t = 0, f = 0, duck = 0;
+    let y = G, vy = 0, t = 90, f = 0, duck = 0; // t: first obstacle after ~1.5s
     const ob = [];
     return {
       update() {
