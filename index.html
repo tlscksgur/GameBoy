@@ -5,51 +5,90 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>Pocket 100</title>
 <style>
-  :root { --body:#e8573f; --body-dark:#b93c28; --bezel:#2b2d3a; --btn:#2a2a33; --ab:#ffd23f; }
+  :root { --body:#e8573f; --body-hi:#f6826a; --body-dark:#b93c28; --body-deep:#8a2716; --ink:#6a1f10; }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
-  body { margin:0; min-height:100vh; display:grid; place-items:center; background:#1a1b26; font-family:system-ui,sans-serif; }
-  .console { width:min(380px,100vw - 32px); margin:16px; padding:22px 20px 30px; background:var(--body);
-    border-radius:22px 22px 60px 22px; box-shadow:inset -6px -8px 0 var(--body-dark), 0 20px 40px #0008; }
-  .bezel { background:var(--bezel); border-radius:12px 12px 36px 12px; padding:18px 18px 10px; }
-  canvas { display:block; width:100%; aspect-ratio:160/144; background:#0d1021; image-rendering:pixelated; border-radius:3px; }
-  .brand { color:#9aa0b8; font:italic 700 12px system-ui; letter-spacing:2px; margin-top:8px; }
-  .controls { display:flex; justify-content:space-between; align-items:center; margin-top:28px; }
+  body { margin:0; min-height:100vh; display:grid; place-items:center; font-family:system-ui,sans-serif;
+    background:#14151f radial-gradient(ellipse at 50% 35%, #2c2e42 0%, #14151f 70%); }
+
+  /* shell: lit from the top-left, thick rounded edge at the bottom-right */
+  .console { position:relative; width:min(380px,100vw - 32px); margin:16px; padding:26px 20px 44px; border-radius:22px 22px 64px 22px;
+    background:linear-gradient(160deg, var(--body-hi) 0%, var(--body) 30%, #de4c34 100%);
+    box-shadow:inset 3px 3px 0 #ffffff38, inset -6px -8px 0 var(--body-dark), inset -9px -12px 8px #0003,
+      0 3px 0 var(--body-deep), 0 26px 50px #000b, 0 8px 16px #0007; }
+  .console::before { content:""; position:absolute; left:16px; right:16px; top:10px; height:3px; border-radius:2px;
+    background:var(--body-dark); box-shadow:inset 0 1px 1px #0005, 0 1px 0 #fff4; } /* top seam */
+
+  /* screen bezel */
+  .bezel { position:relative; background:linear-gradient(#383a4f,#25263a); border-radius:12px 12px 40px 12px; padding:22px 18px 12px 30px;
+    box-shadow:inset 0 2px 0 #ffffff18, inset 0 -3px 0 #0006, 0 1px 0 #fff5, 0 -1px 1px #0004; }
+  .bezel::before { content:""; position:absolute; left:14px; right:14px; top:9px; height:4px;
+    background:linear-gradient(#9b8cff 0 1px, transparent 1px 3px, #4cc9f0 3px 4px); opacity:.85; }
+  .led { position:absolute; left:11px; top:40%; width:8px; height:8px; border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #ffd0c8, #ff4b3b 55%, #a8160c); box-shadow:0 0 6px 1px #ff4b3baa; }
+  .led::after { content:"POWER"; position:absolute; left:50%; top:30px; transform:translateX(-50%) rotate(-90deg);
+    font:700 6px system-ui; letter-spacing:1px; color:#6b6f85; white-space:nowrap; }
+  .screen { position:relative; padding:3px; border-radius:4px; background:#07080e; box-shadow:inset 0 0 0 1px #000, inset 0 3px 6px #000c, 0 1px 0 #ffffff14; }
+  .screen::after { content:""; position:absolute; inset:3px; border-radius:3px; pointer-events:none;
+    background:linear-gradient(130deg, #ffffff17 0%, #ffffff06 32%, transparent 33%), radial-gradient(ellipse at 50% 50%, transparent 70%, #0005 100%); } /* glass glare + edge vignette */
+  canvas { display:block; width:100%; aspect-ratio:160/144; background:#0d1021; image-rendering:pixelated; border-radius:2px; }
+  .brand { margin-top:9px; white-space:nowrap; font:italic 800 12px system-ui; letter-spacing:2px; color:#a3a8c3; text-shadow:0 1px 0 #000; }
+  .brand b { background:linear-gradient(90deg,#ff5d5d,#ffb347,#ffe66d,#7ae582,#4cc9f0,#9b8cff); -webkit-background-clip:text; background-clip:text; color:transparent; text-shadow:none; }
+
+  .controls { display:flex; justify-content:space-between; align-items:center; margin-top:30px; }
+
+  /* d-pad */
   .dpad { position:relative; width:120px; height:120px; }
-  /* recessed well the cross sits in */
   .dpad::before { content:""; position:absolute; inset:-10px; border-radius:50%; background:var(--body-dark);
-    box-shadow:inset 0 4px 8px #0006, 0 1px 0 #fff3; }
+    box-shadow:inset 0 4px 8px #0006, 0 1px 0 #fff3; } /* recessed well */
   .dpad button { position:absolute; width:40px; height:40px; border:0; background:linear-gradient(#3b3d4a,#24252e);
     box-shadow:0 4px 0 #111218, 0 6px 8px #0005; }
   .dpad [data-k=up]{left:40px;top:0;border-radius:7px 7px 0 0} .dpad [data-k=down]{left:40px;bottom:0;border-radius:0 0 7px 7px}
   .dpad [data-k=left]{left:0;top:40px;border-radius:7px 0 0 7px} .dpad [data-k=right]{right:0;top:40px;border-radius:0 7px 7px 0}
-  /* arrow triangles */
   .dpad button::before { content:""; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); border:7px solid transparent; }
   .dpad [data-k=up]::before{border-bottom:9px solid var(--ar,#6b6f85);border-top-width:0}
   .dpad [data-k=down]::before{border-top:9px solid var(--ar,#6b6f85);border-bottom-width:0}
   .dpad [data-k=left]::before{border-right:9px solid var(--ar,#6b6f85);border-left-width:0}
   .dpad [data-k=right]::before{border-left:9px solid var(--ar,#6b6f85);border-right-width:0}
-  /* center hub with a thumb dimple */
   .dpad::after { content:""; position:absolute; left:40px; top:40px; width:40px; height:40px; pointer-events:none;
-    background:radial-gradient(circle,#1c1d24 0 9px,#2f3039 10px); }
-  .dpad button.on { transform:translateY(3px); box-shadow:0 1px 0 #111218; filter:none; background:linear-gradient(#2f3039,#1d1e25); }
-  .dpad button.on { --ar:#c8cce0; }
-  .ab { display:flex; gap:14px; transform:rotate(-20deg); }
-  .ab button { width:54px; height:54px; border-radius:50%; border:0; background:var(--ab); font-weight:800; color:#7a5a00; box-shadow:0 4px 0 #b8901a; }
-  .sys { display:flex; justify-content:center; gap:22px; margin-top:26px; }
-  .sys button { width:58px; height:14px; border-radius:7px; border:0; background:#555a6e; }
-  .sys span { display:block; text-align:center; font-size:10px; color:#4a1a10; font-weight:700; margin-top:4px; letter-spacing:1px; }
+    background:radial-gradient(circle,#1c1d24 0 9px,#2f3039 10px); } /* center hub */
+  .dpad button.on { transform:translateY(3px); box-shadow:0 1px 0 #111218; filter:none; background:linear-gradient(#2f3039,#1d1e25); --ar:#c8cce0; }
+
+  /* A / B: glossy domes in a shared pill-shaped well */
+  .ab { display:flex; gap:16px; padding:9px 10px; border-radius:40px; transform:rotate(-22deg);
+    background:var(--body-dark); box-shadow:inset 0 4px 8px #0006, 0 1px 0 #fff3; }
+  .ab button { width:52px; height:52px; border-radius:50%; border:0; font:800 15px system-ui; color:#8a6200; text-shadow:0 1px 0 #fff7;
+    background:radial-gradient(circle at 34% 28%, #fff6c4 0 7%, #ffd84a 26%, #f2b51c 66%, #c98d08);
+    box-shadow:0 4px 0 #946600, 0 7px 9px #0006, inset 0 -3px 5px #0002; }
+  .ab button.on { transform:translateY(3px); filter:none; box-shadow:0 1px 0 #946600, 0 2px 3px #0005, inset 0 2px 5px #0003;
+    background:radial-gradient(circle at 34% 28%, #f3e3a0 0 7%, #f0c832 26%, #dc9f14 66%, #b07c06); }
+
+  /* START / SELECT: rubber pills in slots */
+  .sys { display:flex; justify-content:center; gap:22px; margin-top:30px; }
+  .sys > div { display:flex; flex-direction:column; align-items:center; transform:rotate(-22deg); }
+  .slot { padding:4px 5px; border-radius:12px; background:var(--body-dark); box-shadow:inset 0 2px 4px #0006, 0 1px 0 #fff3; }
+  .sys button { display:block; width:50px; height:12px; border-radius:6px; border:0;
+    background:linear-gradient(#787d93,#4a4e61); box-shadow:0 2px 0 #2c2f3c, inset 0 1px 0 #fff4; }
+  .sys button.on { transform:translateY(2px); filter:none; box-shadow:inset 0 1px 2px #0006; }
+  .sys span { margin-top:6px; font:800 9px system-ui; letter-spacing:1.5px; color:var(--ink); text-shadow:0 1px 0 #fff4; }
+
+  /* speaker grille */
+  .speaker { position:absolute; right:34px; bottom:26px; display:flex; gap:5px; transform:rotate(-30deg); pointer-events:none; }
+  .speaker i { width:5px; height:40px; border-radius:3px; background:var(--body-dark); box-shadow:inset 0 2px 3px #0008, 0 1px 0 #fff3; }
+
   button { cursor:pointer; touch-action:none; }
   button.on { filter:brightness(1.4); transform:translateY(2px); }
   .help { color:#6b6f85; font-size:12px; text-align:center; margin-top:12px; }
   @media (hover:none) { .help { display:none; } }
+  @media (max-width:360px) { .speaker { right:22px; gap:4px; } .speaker i { height:32px; } .brand { font-size:10px; letter-spacing:1px; } }
 </style>
 </head>
 <body>
 <div>
   <div class="console">
     <div class="bezel">
-      <canvas id="scr" width="320" height="288"></canvas>
-      <div class="brand">POCKET 100 · 110 GAMES IN 1</div>
+      <span class="led" aria-hidden="true"></span>
+      <div class="screen"><canvas id="scr" width="320" height="288"></canvas></div>
+      <div class="brand"><b>POCKET 100</b> · 110 GAMES IN 1</div>
     </div>
     <div class="controls">
       <div class="dpad">
@@ -59,9 +98,10 @@
       <div class="ab"><button data-k="b">B</button><button data-k="a">A</button></div>
     </div>
     <div class="sys">
-      <div><button data-k="select" aria-label="Select"></button><span>SELECT</span></div>
-      <div><button data-k="start" aria-label="Start"></button><span>START</span></div>
+      <div><div class="slot"><button data-k="select" aria-label="Select"></button></div><span>SELECT</span></div>
+      <div><div class="slot"><button data-k="start" aria-label="Start"></button></div><span>START</span></div>
     </div>
+    <div class="speaker" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
   </div>
   <div class="help">키보드: 방향키 · Z/Space=A · X=B · Enter=Start · Shift=Select(메뉴로)</div>
 </div>
