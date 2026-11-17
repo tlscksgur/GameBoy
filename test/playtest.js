@@ -4,13 +4,15 @@ const fs = require('fs'), vm = require('vm'), path = require('path');
 let rects = [], texts = [];
 const ctx = new Proxy({ fillStyle: '' }, {
   get: (o, k) => k == 'fillRect' ? (x, y, w, h) => rects.push({ x, y, w, h, c: o.fillStyle })
-    : k == 'fillText' ? (s, x, y) => texts.push({ s: String(s), x, y }) : k in o ? o[k] : () => {},
+    : k == 'fillText' ? (s, x, y) => texts.push({ s: String(s), x, y })
+    : k == 'drawImage' ? (img, ...a) => { const [x, y, w = img.width, h = img.height] = a.length > 4 ? a.slice(4) : a; rects.push({ x, y, w, h, c: img.k }); } // sprites carry .k = their old rect colour
+    : k in o ? o[k] : () => {},
   set: (o, k, v) => (o[k] = v, true),
 });
-const sb = { document: { getElementById: () => ({ getContext: () => ctx }), querySelectorAll: () => [], createElement: () => ({ getContext: () => ctx }) },
+const sb = { document: { getElementById: () => ({ getContext: () => ctx }), querySelectorAll: () => [], createElement: () => ({ getContext: () => new Proxy({}, { get: () => () => {}, set: () => true }) }) },
   addEventListener() {}, requestAnimationFrame() {}, performance, localStorage: { getItem: () => null, setItem() {} }, console, Math };
 vm.createContext(sb);
-for (const f of ['games.js', 'adventure.js', 'main.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), sb, { filename: f });
+for (const f of ['games.js', 'adventure.js', 'sprites.js', 'main.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), sb, { filename: f });
 const G = vm.runInContext('({ GAMES, start, tick, press, get mode() { return mode }, get result() { return result }, get cur() { return cur }, draw: () => cur.draw() })', sb);
 
 const find = (c, w, h) => rects.filter(r => r.c == c && (w == null || r.w == w) && (h == null || r.h == h));

@@ -85,6 +85,7 @@ function draw() {
 }
 
 function tick() {
+  FT++;
   for (const k of DIRK) hold[k] = held[k] ? (hold[k] || 0) + 1 : 0;
   update();
   for (const k in pressed) delete pressed[k];

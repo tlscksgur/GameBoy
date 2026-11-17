@@ -30,10 +30,12 @@ const E = {
         if (x == f[0] && y == f[1]) { sc += 10; f = spot(); } else s.pop();
       },
       draw() {
-        if (!p.wrap) B(0, 13, 160, 131, '#445');
-        obs.forEach(o => R(o[0] * 8, 16 + o[1] * 8, 8, 8, '#666'));
-        R(f[0] * 8 + 1, 16 + f[1] * 8 + 1, 6, 6, '#ff5d5d');
-        s.forEach((c, i) => R(c[0] * 8, 16 + c[1] * 8, 7, 7, i ? '#7ae582' : '#c6ffcb'));
+        DI(BG('grass'), 0, 16); R(0, 12, 160, 4, '#2f5e2a');
+        if (!p.wrap) B(0, 13, 160, 131, '#9c6b48');
+        obs.forEach(o => DI(GS.rock, o[0] * 8, 16 + o[1] * 8));
+        DI(GS.apple, f[0] * 8 + 1, 16 + f[1] * 8 + 1);
+        const hd = d[0] == 1 ? 0 : d[1] == 1 ? 1 : d[0] == -1 ? 2 : 3;
+        s.forEach((c, i) => DI(i ? GS.body : GS.head[hd], c[0] * 8, 16 + c[1] * 8));
         hud('SCORE ' + sc);
       }
     };
@@ -60,8 +62,10 @@ const E = {
         if (cs >= p.to) return end(ps * 100);
       },
       draw() {
-        for (let y = 16; y < 144; y += 8) R(79, y, 2, 4, '#444');
-        R(4, py, 4, PH, '#4cc9f0'); R(152, cy, 4, PH, '#ff5d5d'); R(b.x, b.y, 3, 3, '#fff');
+        DI(BG('court'), 0, 12);
+        const pad = (x, y, c) => { R(x, y, 4, PH, c); R(x, y, 1, PH, lit(c)); R(x + 3, y, 1, PH, dim(c)); R(x, y, 4, 1, lit(c, .7)); R(x, y + PH - 1, 4, 1, dim(c, .6));
+          for (let k = 4; k < PH - 3; k += 4) R(x + 1, y + k, 2, 1, dim(c, .25)); };
+        pad(4, py, '#4cc9f0'); pad(152, cy, '#ff5d5d'); DI(GS.ball, b.x, b.y);
         hud('YOU ' + ps + ' : ' + cs + ' CPU', 'TO ' + p.to);
       }
     };
@@ -86,8 +90,10 @@ const E = {
         if (b.y > 144) { if (--lives < 1) return end(sc); stuck = 1; }
       },
       draw() {
-        br.forEach(k => R(k.x + 1, k.y, 14, 6, k.c));
-        R(px, 136, p.pw, 4, '#4cc9f0'); R(b.x, b.y, 3, 3, '#fff');
+        DI(BG('wall'), 0, 12);
+        br.forEach(k => DI(GS.brick(k.c), k.x + 1, k.y));
+        R(px, 136, p.pw, 4, '#4cc9f0'); R(px, 136, p.pw, 1, '#c8f4ff'); R(px, 139, p.pw, 1, '#2a7fa8'); R(px, 136, 3, 4, '#ff5d5d'); R(px + p.pw - 3, 136, 3, 4, '#ff5d5d');
+        DI(GS.ball, b.x, b.y);
         if (stuck) T('A: 발사', 80, 110, '#889', 'center');
         hud('SCORE ' + sc, '♥'.repeat(lives));
       }
@@ -124,9 +130,11 @@ const E = {
         if (en.some(e => e.y >= 122)) return end(sc);
       },
       draw() {
-        en.forEach(e => { R(e.x, e.y, 10, 6, e.c); R(e.x + 2, e.y + 2, 2, 2, '#000'); R(e.x + 6, e.y + 2, 2, 2, '#000'); });
-        if (!(inv & 4)) { R(x, 130, 8, 8, '#7ae582'); R(x + 3, 127, 2, 3, '#7ae582'); }
-        bul.forEach(b => R(b.x, b.y, 2, 4, '#fff')); eb.forEach(b => R(b.x, b.y, 2, 4, '#ff5d5d'));
+        DI(BG('space'), 0, 12);
+        for (let i = 0; i < 30; i++) R(i * 37 % 160, 12 + (i * 53 + FT * (1 + i % 3) * .3) % 132, 1, 1, i % 3 ? '#566c86' : '#f4f4f4');
+        en.forEach(e => DI(GS.alien(e.c)[e.x >> 1 & 1], e.x, e.y));
+        if (!(inv & 4)) { DI(GS.ship, x, 130); R(x + 3, 127, 2, 3, '#c6ffcb'); }
+        bul.forEach(b => DI(GS.pb, b.x, b.y)); eb.forEach(b => DI(GS.eb, b.x, b.y));
         hud('SCORE ' + sc, '♥'.repeat(lives));
       }
     };
@@ -146,7 +154,11 @@ const E = {
           if (o.y > 144) ob.splice(i, 1);
         }
       },
-      draw() { ob.forEach(o => R(o.x, o.y, o.s, o.s, '#ff8fd1')); R(x, 130, 8, 8, '#4cc9f0'); hud('SCORE ' + (f / 6 | 0)); }
+      draw() {
+        DI(BG('canyon'), 0, 12);
+        ob.forEach(o => { if (o.s > 5) R(o.x + o.s / 2 - 1, o.y - 4, 2, 4, '#ef7d5788'); DI(GS.meteor(o.s), o.x, o.y); });
+        DI(GS.bot, x, 130); hud('SCORE ' + (f / 6 | 0));
+      }
     };
   },
 
@@ -168,8 +180,11 @@ const E = {
         if (y < 12 || y > 138) return end(sc);
       },
       draw() {
-        pipes.forEach(q => { R(q.x, 12, 14, q.g - 12, '#7ae582'); R(q.x, q.g + p.gap, 14, 144 - q.g - p.gap, '#7ae582'); });
-        R(28, y, 6, 6, '#ffe66d');
+        DI(BG('sky'), 0, 12); strip(STRIP.bush, FT * p.spd * .5, 120);
+        const pipe = (x, y, h, capY) => { R(x, y, 14, h, '#7ae582'); R(x, y, 1, h, '#1a1c2c'); R(x + 13, y, 1, h, '#1a1c2c'); R(x + 2, y, 2, h, '#c6ffcb'); R(x + 9, y, 4, h, '#38b764');
+          R(x, capY, 14, 6, '#5ed16d'); R(x, capY, 14, 1, '#1a1c2c'); R(x, capY + 5, 14, 1, '#1a1c2c'); R(x + 2, capY + 1, 2, 4, '#e0ffe0'); R(x + 9, capY + 1, 4, 4, '#2a9a50'); };
+        pipes.forEach(q => { pipe(q.x, 12, q.g - 12, q.g - 6); pipe(q.x, q.g + p.gap, 144 - q.g - p.gap, q.g + p.gap); });
+        DI(GS.bird[go ? FT >> 3 & 1 : 0], 28, y);
         if (!go) T('A: 날기', 80, 100, '#889', 'center');
         hud('SCORE ' + sc);
       }
@@ -199,9 +214,12 @@ const E = {
         }
       },
       draw() {
-        R(0, G, 160, 2, '#888');
-        ob.forEach(o => R(o.x, o.t, o.w, o.h, o.bird ? '#ff8fd1' : '#7ae582'));
-        const h = duck ? 6 : 12; R(18, y - h, 8, h, '#ffe66d');
+        const night = p.g || p.spd >= 3, d = f * p.spd;
+        DI(BG(night ? 'night' : 'day'), 0, 12); strip(STRIP.mesa[night ? 1 : 0], d * .2, G - 40);
+        R(0, G, 160, 2, '#888'); R(0, G + 2, 160, 22, night ? '#3a3550' : '#c08050');
+        for (let i = 0; i < 14; i++) R(((i * 29 - d) % 160 + 160) % 160, G + 4 + i * 7 % 18, 2, 1, night ? '#566c86' : '#9c6b48');
+        ob.forEach(o => DI(o.bird ? GS.bat[FT >> 3 & 1] : GS.cactus[o.h > 8 ? 1 : 0], o.x, o.t));
+        const h = duck ? 6 : 12; DI(duck ? GS.duck : y < G ? GS.chick[2] : GS.chick[f >> 3 & 1], 18, y - h);
         hud('SCORE ' + (f / 6 | 0), p.fly ? '↓: 숙이기' : '');
       }
     };
@@ -233,12 +251,15 @@ const E = {
         }
       },
       draw() {
+        DI(BG('felt'), 0, 12);
         for (let y = 0; y < RW; y++) for (let x = 0; x < C; x++) {
           const i = id(x, y), X = ox + x * cs, Y = oy + y * cs;
-          R(X, Y, cs - 1, cs - 1, open[i] ? '#ddd' : '#557');
-          if (open[i] && m[i]) R(X + 2, Y + 2, cs - 5, cs - 5, '#ff5d5d');
+          const cx = X + (cs - 8) / 2, cy = Y + (cs - 8) / 2;
+          if (open[i]) { R(X, Y, cs - 1, cs - 1, m[i] ? '#ff5d5d' : '#c2c3c7'); R(X, Y, cs - 1, 1, '#9a9ba0'); R(X, Y, 1, cs - 1, '#9a9ba0'); }
+          else bevel(X, Y, cs - 1, cs - 1, '#5a6088');
+          if (open[i] && m[i]) DI(GS.mine, cx, cy);
           else if (open[i]) { const n = cnt(x, y); if (n) T(n, X + cs / 2, Y + cs / 2 - 4, NUMC[n], 'center'); }
-          else if (flag[i]) R(X + cs / 2 - 2, Y + cs / 2 - 2, 3, 3, '#ff5d5d');
+          else if (flag[i]) DI(GS.flag, cx, cy);
         }
         B(ox + c.x * cs - 1, oy + c.y * cs - 1, cs + 1, cs + 1, '#ffe66d');
         hud('MINE ' + p.m + ' A:열기 B:깃발', (t / 60 | 0) + 's');
@@ -264,10 +285,11 @@ const E = {
         }
       },
       draw() {
+        DI(BG('felt'), 0, 12);
         cards.forEach((v, i) => {
           const X = ox + (i % C) * cs, Y = oy + (i / C | 0) * cs;
-          R(X + 1, Y + 1, cs - 2, cs - 2, up[i] ? PAL[v % 7] : '#335');
-          if (up[i]) T('ABCDEFGHIJKL'[v], X + cs / 2, Y + cs / 2 - 6, '#000', 'center', 12);
+          if (up[i]) { bevel(X + 1, Y + 1, cs - 2, cs - 2, '#f4e9d0'); DI(GS.icon[v], X + cs / 2 - 8, Y + cs / 2 - 8, 16, 16); }
+          else { bevel(X + 1, Y + 1, cs - 2, cs - 2, '#3b5dc9'); B(X + 4, Y + 4, cs - 8, cs - 8, '#73eff7'); R(X + cs / 2 - 2, Y + cs / 2 - 2, 4, 4, '#ffcd75'); }
         });
         B(ox + c.x * cs, oy + c.y * cs, cs, cs, '#fff');
         hud('PAIR ' + got + '/' + p.pairs, 'MISS ' + miss);
@@ -296,7 +318,9 @@ const E = {
       },
       draw() {
         const pos = [[66, 28], [100, 62], [66, 96], [32, 62]], cl = ['#4cc9f0', '#7ae582', '#ffe66d', '#ff5d5d'];
-        pos.forEach(([x, y], d) => { R(x, y, 28, 28, cl[d]); if (lit != d) R(x, y, 28, 28, '#000b'); });
+        DI(BG('felt'), 0, 12); R(30, 26, 100, 100, '#1a1c2c'); R(28, 28, 104, 96, '#1a1c2c'); R(62, 60, 36, 32, '#333c57');
+        pos.forEach(([x, y], d) => { const on = lit == d, c = on ? cl[d] : dim(cl[d], .6);
+          if (on) R(x - 2, y - 2, 32, 32, mix(cl[d], '#ffffff', .5)); bevel(x, y, 28, 28, c, 2); DI(GS.arrow[d], x + 10, y + 10); });
         T(show ? '잘 봐!' : p.rev ? '거꾸로 입력!' : '따라 입력!', 80, 130, '#fff', 'center');
         hud('ROUND ' + (sc + 1), 'LEN ' + seq.length);
       }
@@ -316,10 +340,13 @@ const E = {
         if (P('a')) { if (mole[i] > 0) { mole[i] = 0; sc++; } else sc = Math.max(0, sc - 1); }
       },
       draw() {
+        DI(BG('lawn'), 0, 12);
         for (let i = 0; i < n * n; i++) {
-          const X = ox + (i % n) * cs, Y = oy + (i / n | 0) * cs;
-          R(X + 3, Y + cs - 9, cs - 6, 6, '#3a2618');
-          if (mole[i] > 0) { R(X + 7, Y + 6, cs - 14, cs - 13, '#b07a4a'); R(X + cs / 2 - 4, Y + 10, 2, 2, '#000'); R(X + cs / 2 + 2, Y + 10, 2, 2, '#000'); }
+          const X = ox + (i % n) * cs, Y = oy + (i / n | 0) * cs, hx = X + cs / 2 - 11 | 0, hy = Y + cs - 11 | 0;
+          DI(GS.hole[0], hx, hy);
+          if (mole[i] > 0) { const sh = Math.round(10 * Math.min(1, (p.up - mole[i]) / 5, mole[i] / 5)); // pop up / sink down
+            if (sh > 0) g.drawImage(GS.mole, 0, 0, 14, sh, hx + 4, hy + 5 - sh, 14, sh); }
+          DI(GS.hole[1], hx, hy);
         }
         B(ox + c.x * cs, oy + c.y * cs, cs, cs, '#ffe66d');
         hud('HIT ' + sc, Math.ceil(t / 60) + 's');
@@ -339,7 +366,10 @@ const E = {
         if (P('a')) { tog(c.x, c.y); mv++; if (!L.some(v => v)) return win(Math.max(10, 500 - mv * 10)); }
       },
       draw() {
-        L.forEach((v, i) => R(ox + (i % n) * cs + 1, oy + (i / n | 0) * cs + 1, cs - 2, cs - 2, v ? '#ffe66d' : '#333'));
+        DI(BG('felt'), 0, 12);
+        L.forEach((v, i) => { const X = ox + (i % n) * cs + 1, Y = oy + (i / n | 0) * cs + 1, s = cs - 2;
+          bevel(X, Y, s, s, v ? '#ffe66d' : '#3a3550', 2);
+          if (v) { R(X + 3, Y + 3, 3, 1, '#fff'); R(X + 3, Y + 3, 1, 3, '#fff'); } else R(X + s / 2 - 2, Y + s / 2 - 2, 4, 4, '#26243a'); });
         B(ox + c.x * cs, oy + c.y * cs, cs, cs, '#4cc9f0');
         hud('MOVES ' + mv, '불을 다 끄기');
       }
@@ -357,10 +387,11 @@ const E = {
         for (const k in DIRS) if (P(k) && mov(-DIRS[k][0], -DIRS[k][1])) { mv++; if (solved()) return win(Math.max(10, 1000 - mv * 5)); }
       },
       draw() {
+        DI(BG('felt'), 0, 12); bevel(ox - 3, oy - 3, n * cs + 6, n * cs + 6, '#7a4f33'); R(ox, oy, n * cs, n * cs, '#3a2618');
         b.forEach((v, i) => {
           if (!v) return;
           const X = ox + (i % n) * cs, Y = oy + (i / n | 0) * cs;
-          R(X + 1, Y + 1, cs - 2, cs - 2, v == i + 1 ? '#7ae582' : '#4cc9f0'); T(v, X + cs / 2, Y + cs / 2 - 4, '#000', 'center');
+          bevel(X + 1, Y + 1, cs - 2, cs - 2, v == i + 1 ? '#8fcf6a' : '#d8a066', 2); T(v, X + cs / 2, Y + cs / 2 - 4, '#3a2618', 'center');
         });
         hud('MOVES ' + mv, '순서대로 맞추기');
       }
@@ -377,7 +408,7 @@ const E = {
         // strict (missing costs a life): fixed rhythm and each drop within reach of the last one
         if (p.strict ? f % 50 == 0 : Math.random() < p.rate * lv) {
           last = p.strict ? clamp(last + rnd(121) - 60, 0, 152) : rnd(152);
-          it.push({ x: last, y: 4, bad: Math.random() < p.bad, v: p.vy * lv });
+          it.push({ x: last, y: 4, bad: Math.random() < p.bad, v: p.vy * lv, f: rnd(4) });
         }
         for (let i = it.length; i--;) {
           const o = it[i]; o.y += o.v;
@@ -388,8 +419,9 @@ const E = {
         }
       },
       draw() {
-        it.forEach(o => { R(o.x, o.y, 8, 8, o.bad ? '#ff5d5d' : '#7ae582'); if (o.bad) T('x', o.x + 4, o.y, '#000', 'center'); });
-        R(x, 130, 16, 6, '#c8874a');
+        DI(BG('orchard'), 0, 12);
+        it.forEach(o => DI(o.bad ? GS.bomb : GS.fruit[o.f], o.x, o.y));
+        DI(GS.basket, x, 130);
         hud('SCORE ' + sc, '♥'.repeat(lives));
       }
     };
@@ -416,7 +448,9 @@ const E = {
         if (px == C - 1 && py == RW - 1) return win(Math.ceil(t / 60) * 10);
       },
       draw() {
-        R(ox + (C - 1) * cs + 1, oy + (RW - 1) * cs + 1, cs - 2, cs - 2, '#7ae582');
+        for (let i = 0; i < C * RW; i++) R(ox + (i % C) * cs, oy + (i / C | 0) * cs, cs, cs, (i % C + (i / C | 0)) % 2 ? '#161d3a' : '#121831');
+        R(ox + (C - 1) * cs + 1, oy + (RW - 1) * cs + 1, cs - 2, cs - 2, '#38b764');
+        if (cs >= 12) DI(GS.icon[1], ox + (C - 1) * cs + (cs - 8) / 2, oy + (RW - 1) * cs + (cs - 8) / 2);
         for (let i = 0; i < C * RW; i++) {
           const X = ox + (i % C) * cs, Y = oy + (i / C | 0) * cs;
           if (!(o[i] & 1)) R(X + cs - 1, Y, 1, cs, '#9b8cff');
@@ -424,7 +458,7 @@ const E = {
           if (p.dark && Math.max(Math.abs(i % C - px), Math.abs((i / C | 0) - py)) > p.dark) R(X, Y, cs, cs, '#000');
         }
         R(ox, oy, C * cs, 1, '#9b8cff'); R(ox, oy, 1, RW * cs, '#9b8cff');
-        R(ox + px * cs + 2, oy + py * cs + 2, cs - 4, cs - 4, '#ffe66d');
+        if (cs >= 12) DI(GS.face, ox + px * cs + (cs - 8) / 2, oy + py * cs + (cs - 8) / 2); else R(ox + px * cs + 2, oy + py * cs + 2, cs - 4, cs - 4, '#ffe66d');
         hud('초록 칸으로!', Math.ceil(t / 60) + 's');
       }
     };
@@ -451,7 +485,12 @@ const E = {
         }
       },
       draw() {
-        R(20, 40, 120, 64, st == 1 ? (fake ? '#ff5d5d' : '#7ae582') : '#333');
+        DI(BG('west'), 0, 12); R(32, 100, 4, 36, '#5a3a20'); R(124, 100, 4, 36, '#5a3a20');
+        bevel(20, 40, 120, 64, st == 1 ? (fake ? '#ff5d5d' : '#7ae582') : '#9c6b48', 2);
+        if (st != 1) for (const y of [56, 72, 88]) R(22, y, 116, 1, '#7a4f33');
+        for (const [a, b] of [[23, 43], [135, 43], [23, 99], [135, 99]]) R(a, b, 2, 2, '#333c57');
+        DI(HERO.idle[0], 10, 120); DI(FOE_TROOP.idle[1], 136, 120);
+        if (st != 1) T(msg, 81, 67, '#3a2618', 'center', 10);
         T(msg, 80, 66, st == 1 ? '#000' : '#fff', 'center', 10);
         hud('ROUND ' + Math.min(r + 1, p.rounds) + '/' + p.rounds, 'SCORE ' + sc);
       }
@@ -492,10 +531,11 @@ const E = {
         if (P('a') && !b[i]) { b[i] = 1; turn = 2; fin(); }
       },
       draw() {
+        DI(BG('felt'), 0, 12); bevel(23, 15, 114, 114, '#9c6b48', 2);
         for (let i = 0; i < 9; i++) {
           const X = 26 + (i % 3) * 36, Y = 18 + (i / 3 | 0) * 36;
-          R(X + 1, Y + 1, 34, 34, '#223');
-          if (b[i]) T(b[i] == 1 ? 'X' : 'O', X + 18, Y + 6, b[i] == 1 ? '#4cc9f0' : '#ff5d5d', 'center', 24);
+          R(X + 1, Y + 1, 34, 34, '#2b4a3a'); R(X + 1, Y + 1, 34, 1, '#1f3a2c'); R(X + 1, Y + 1, 1, 34, '#1f3a2c');
+          if (b[i]) DI(b[i] == 1 ? GS.X : GS.O, X + 6, Y + 6, 24, 24);
         }
         if (!wait) B(26 + c.x * 36, 18 + c.y * 36, 36, 36, '#ffe66d');
         if (msg) { R(40, 64, 80, 16, '#000d'); T(msg, 80, 68, '#fff', 'center'); }
@@ -530,9 +570,11 @@ const E = {
         if (row == LN + 1) { sc += 10; lv += .15; row = 0; mk(); }
       },
       draw() {
-        R(0, Y(0), 160, 8, '#2d4a2d'); R(0, Y(LN + 1), 160, 8, '#2d6a2d');
-        lanes.forEach((l, i) => { R(0, Y(i + 1), 160, 8, i % 2 ? '#2a2a33' : '#33333d'); l.cars.forEach(x => R(x, Y(i + 1) + 1, l.len, 6, l.c)); });
-        R(px + 1, Y(row) + 1, 6, 6, '#7ae582'); R(px + 2, Y(row) + 2, 1, 1, '#000'); R(px + 5, Y(row) + 2, 1, 1, '#000');
+        R(0, 12, 160, Y(LN + 1) - 4, '#24402a');
+        for (const r of [0, LN + 1]) { R(0, Y(r), 160, 8, r ? '#2d6a2d' : '#2d4a2d'); for (let x = 3; x < 160; x += 11) R(x, Y(r) + 2 + x % 4, 1, 2, r ? '#ffe66d' : '#4c8a3a'); }
+        lanes.forEach((l, i) => { R(0, Y(i + 1), 160, 8, '#33333d'); if (i) for (let x = 2; x < 160; x += 12) R(x, Y(i + 1), 6, 1, '#6b6f85');
+          l.cars.forEach(x => DI(GS.car(l.c, l.len, l.sp > 0), x, Y(i + 1) + 1)); });
+        DI(GS.frog, px + 1, Y(row) + 1);
         hud('SCORE ' + sc, '♥'.repeat(lives));
       }
     };
@@ -554,8 +596,12 @@ const E = {
       },
       draw() {
         const sy = Math.max(0, (tw.length - 12) * 8);
-        tw.forEach((k, i) => R(k.x, 136 - i * 8 + sy, k.w, 7, PAL[i % 7]));
-        R(x, 136 - tw.length * 8 + sy, w, 7, '#fff');
+        DI(BG('city'), 0, 12);
+        const wnd = (x, y, w, c) => { for (let k = x + 3; k < x + w - 3; k += 5) R(k, y + 2, 2, 3, dim(c, .3)); };
+        tw.forEach((k, i) => { const y = 136 - i * 8 + sy, c = PAL[i % 7];
+          R(k.x, y, k.w, 7, c); R(k.x, y, k.w, 1, lit(c, .5)); R(k.x, y + 6, k.w, 1, dim(c, .4)); R(k.x + k.w - 1, y + 1, 1, 5, dim(c, .25)); wnd(k.x, y, k.w, c); });
+        const my = 136 - tw.length * 8 + sy, mc = PAL[tw.length % 7];
+        R(x, my, w, 7, '#fff'); R(x + 1, my + 1, w - 2, 5, mc); wnd(x, my, w, mc);
         hud('HEIGHT ' + (tw.length - 1), 'A: 내려놓기');
       }
     };
@@ -579,10 +625,14 @@ const E = {
         }
       },
       draw() {
+        R(0, 12, 160, 132, '#38b764');
+        for (let y = off * 2 % 32 - 32; y < 132; y += 32) R(0, 12 + y, 160, 16, '#2f9e58');
         R(ox, 12, N * lw, 132, '#333');
+        for (let y = off - 16; y < 144; y += 16) for (const ex of [ox - 3, ox + N * lw]) { R(ex, 12 + y, 3, 8, '#ff5d5d'); R(ex, 20 + y, 3, 8, '#f4f4f4'); }
         for (let l = 1; l < N; l++) for (let y = off - 16; y < 144; y += 16) R(ox + l * lw - 1, 12 + y, 2, 8, '#888');
-        cars.forEach(c => R(lx(c.l), c.y, 10, 14, '#ff5d5d'));
-        R(lx(ln), 120, 10, 14, '#4cc9f0');
+        if (ox >= 13) for (let k = 0; k < 4; k++) { const ty = (k * 40 + f * 1.5) % 160 - 16; DI(GS.tree, (ox - 13) / 2, ty); DI(GS.tree, ox + N * lw + 3 + (ox - 13) / 2, (ty + 20) % 160 - 16); }
+        cars.forEach(c => DI(GS.racer[0], lx(c.l), c.y));
+        DI(GS.racer[1], lx(ln), 120);
         hud('SCORE ' + (f / 6 | 0));
       }
     };
