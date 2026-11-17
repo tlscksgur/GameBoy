@@ -1,4 +1,4 @@
-// 20 game engines x 5 settings = 100 games.
+// 20 classic game engines (options per game are in library.js).
 // Engine: params => ({ update(), draw() }). Uses K/P/R/B/T/hud/end/win/rnd/clamp/shuffle from main.js.
 // Screen is 160x144; y 0-12 is the HUD bar.
 const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
@@ -94,7 +94,7 @@ const E = {
         br.forEach(k => DI(GS.brick(k.c), k.x + 1, k.y));
         R(px, 136, p.pw, 4, '#4cc9f0'); R(px, 136, p.pw, 1, '#c8f4ff'); R(px, 139, p.pw, 1, '#2a7fa8'); R(px, 136, 3, 4, '#ff5d5d'); R(px + p.pw - 3, 136, 3, 4, '#ff5d5d');
         DI(GS.ball, b.x, b.y);
-        if (stuck) T('A: 발사', 80, 110, '#889', 'center');
+        if (stuck) T(tr('A: LAUNCH', 'A: 발사'), 80, 110, '#889', 'center');
         hud('SCORE ' + sc, '♥'.repeat(lives));
       }
     };
@@ -147,7 +147,7 @@ const E = {
       update() {
         x = clamp(x + (K('right') - K('left')) * 2.5, 0, 152);
         const lv = 1 + ++f / 1800;
-        if (Math.random() < p.rate * lv) { const s = p.sz[0] + rnd(p.sz[1]); ob.push({ x: rnd(160 - s), y: 12 - s, s, v: p.vy * (.7 + Math.random() * .6) * lv }); }
+        if (Math.random() < p.rate * (p.rm || 1) * lv) { const s = p.sz[0] + rnd(p.sz[1]); ob.push({ x: rnd(160 - s), y: 12 - s, s, v: p.vy * (.7 + Math.random() * .6) * lv }); }
         for (let i = ob.length; i--;) {
           const o = ob[i]; o.y += o.v;
           if (o.x < x + 8 && o.x + o.s > x && o.y < 138 && o.y + o.s > 130) return end(f / 6 | 0);
@@ -185,7 +185,7 @@ const E = {
           R(x, capY, 14, 6, '#5ed16d'); R(x, capY, 14, 1, '#1a1c2c'); R(x, capY + 5, 14, 1, '#1a1c2c'); R(x + 2, capY + 1, 2, 4, '#e0ffe0'); R(x + 9, capY + 1, 4, 4, '#2a9a50'); };
         pipes.forEach(q => { pipe(q.x, 12, q.g - 12, q.g - 6); pipe(q.x, q.g + p.gap, 144 - q.g - p.gap, q.g + p.gap); });
         DI(GS.bird[go ? FT >> 3 & 1 : 0], 28, y);
-        if (!go) T('A: 날기', 80, 100, '#889', 'center');
+        if (!go) T(tr('A: FLAP', 'A: 날기'), 80, 100, '#889', 'center');
         hud('SCORE ' + sc);
       }
     };
@@ -214,18 +214,19 @@ const E = {
         }
       },
       draw() {
-        const night = p.g || p.spd >= 3, d = f * p.spd;
+        const night = p.night, d = f * p.spd;
         DI(BG(night ? 'night' : 'day'), 0, 12); strip(STRIP.mesa[night ? 1 : 0], d * .2, G - 40);
         R(0, G, 160, 2, '#888'); R(0, G + 2, 160, 22, night ? '#3a3550' : '#c08050');
         for (let i = 0; i < 14; i++) R(((i * 29 - d) % 160 + 160) % 160, G + 4 + i * 7 % 18, 2, 1, night ? '#566c86' : '#9c6b48');
         ob.forEach(o => DI(o.bird ? GS.bat[FT >> 3 & 1] : GS.cactus[o.h > 8 ? 1 : 0], o.x, o.t));
         const h = duck ? 6 : 12; DI(duck ? GS.duck : y < G ? GS.chick[2] : GS.chick[f >> 3 & 1], 18, y - h);
-        hud('SCORE ' + (f / 6 | 0), p.fly ? '↓: 숙이기' : '');
+        hud('SCORE ' + (f / 6 | 0), p.fly ? tr('↓: DUCK', '↓: 숙이기') : '');
       }
     };
   },
 
   mines: p => {
+    p = { ...p, m: p.m || Math.round(p.c * p.r * p.dens) };
     const C = p.c, RW = p.r, [cs, ox, oy] = fit(C, RW), m = [], open = [], flag = [], c = { x: 0, y: 0 };
     const NUMC = ['', '#1b5fd1', '#18823b', '#c62828', '#4a148c', '#7f0000', '#00838f', '#000', '#555'];
     let placed = 0, left = C * RW - p.m, t = 0;
@@ -262,7 +263,7 @@ const E = {
           else if (flag[i]) DI(GS.flag, cx, cy);
         }
         B(ox + c.x * cs - 1, oy + c.y * cs - 1, cs + 1, cs + 1, '#ffe66d');
-        hud('MINE ' + p.m + ' A:열기 B:깃발', (t / 60 | 0) + 's');
+        hud('MINE ' + p.m + tr(' A:OPEN B:FLAG', ' A:열기 B:깃발'), (t / 60 | 0) + 's');
       }
     };
   },
@@ -321,7 +322,7 @@ const E = {
         DI(BG('felt'), 0, 12); R(30, 26, 100, 100, '#1a1c2c'); R(28, 28, 104, 96, '#1a1c2c'); R(62, 60, 36, 32, '#333c57');
         pos.forEach(([x, y], d) => { const on = lit == d, c = on ? cl[d] : dim(cl[d], .6);
           if (on) R(x - 2, y - 2, 32, 32, mix(cl[d], '#ffffff', .5)); bevel(x, y, 28, 28, c, 2); DI(GS.arrow[d], x + 10, y + 10); });
-        T(show ? '잘 봐!' : p.rev ? '거꾸로 입력!' : '따라 입력!', 80, 130, '#fff', 'center');
+        T(show ? tr('WATCH!', '잘 봐!') : p.rev ? tr('IN REVERSE!', '거꾸로 입력!') : tr('YOUR TURN!', '따라 입력!'), 80, 130, '#fff', 'center');
         hud('ROUND ' + (sc + 1), 'LEN ' + seq.length);
       }
     };
@@ -371,7 +372,7 @@ const E = {
           bevel(X, Y, s, s, v ? '#ffe66d' : '#3a3550', 2);
           if (v) { R(X + 3, Y + 3, 3, 1, '#fff'); R(X + 3, Y + 3, 1, 3, '#fff'); } else R(X + s / 2 - 2, Y + s / 2 - 2, 4, 4, '#26243a'); });
         B(ox + c.x * cs, oy + c.y * cs, cs, cs, '#4cc9f0');
-        hud('MOVES ' + mv, '불을 다 끄기');
+        hud('MOVES ' + mv, tr('ALL OFF', '불을 다 끄기'));
       }
     };
   },
@@ -393,7 +394,7 @@ const E = {
           const X = ox + (i % n) * cs, Y = oy + (i / n | 0) * cs;
           bevel(X + 1, Y + 1, cs - 2, cs - 2, v == i + 1 ? '#8fcf6a' : '#d8a066', 2); T(v, X + cs / 2, Y + cs / 2 - 4, '#3a2618', 'center');
         });
-        hud('MOVES ' + mv, '순서대로 맞추기');
+        hud('MOVES ' + mv, tr('IN ORDER', '순서대로 맞추기'));
       }
     };
   },
@@ -406,7 +407,7 @@ const E = {
         x = clamp(x + (K('right') - K('left')) * 3, 0, 144);
         const lv = 1 + ++f / 3600;
         // strict (missing costs a life): fixed rhythm and each drop within reach of the last one
-        if (p.strict ? f % 50 == 0 : Math.random() < p.rate * lv) {
+        if (p.strict ? f % 50 == 0 : Math.random() < p.rate * (p.rm || 1) * lv) {
           last = p.strict ? clamp(last + rnd(121) - 60, 0, 152) : rnd(152);
           it.push({ x: last, y: 4, bad: Math.random() < p.bad, v: p.vy * lv, f: rnd(4) });
         }
@@ -439,7 +440,7 @@ const E = {
       if (a == 1) o[cc] |= 1; if (a == -1) o[nn] |= 1; if (b == 1) o[cc] |= 2; if (b == -1) o[nn] |= 2;
       st.push(nn);
     }
-    let px = 0, py = 0, t = p.time * 60;
+    let px = 0, py = 0, t = p.time * (p.tm || 1) * 60 | 0;
     const can = (dx, dy) => dx == 1 ? o[py * C + px] & 1 : dx == -1 ? px > 0 && o[py * C + px - 1] & 1 : dy == 1 ? o[py * C + px] & 2 : py > 0 && o[(py - 1) * C + px] & 2;
     return {
       update() {
@@ -459,29 +460,29 @@ const E = {
         }
         R(ox, oy, C * cs, 1, '#9b8cff'); R(ox, oy, 1, RW * cs, '#9b8cff');
         if (cs >= 12) DI(GS.face, ox + px * cs + (cs - 8) / 2, oy + py * cs + (cs - 8) / 2); else R(ox + px * cs + 2, oy + py * cs + 2, cs - 4, cs - 4, '#ffe66d');
-        hud('초록 칸으로!', Math.ceil(t / 60) + 's');
+        hud(tr('TO THE GREEN!', '초록 칸으로!'), Math.ceil(t / 60) + 's');
       }
     };
   },
 
   react: p => {
-    let st = 0, t = 60 + rnd(120), r = 0, sc = 0, fake = 0, msg = '기다려...';
+    let st = 0, t = 60 + rnd(120), r = 0, sc = 0, fake = 0, msg = tr('WAIT...', '기다려...');
     return {
       update() {
         if (st == 0) {
-          if (P('a')) { msg = '너무 빨라! -100'; sc = Math.max(0, sc - 100); st = 2; t = 60; return; }
-          if (--t <= 0) { fake = p.fake && Math.random() < .3; st = 1; t = 0; msg = fake ? '누르지 마!' : '지금 A!'; }
+          if (P('a')) { msg = tr('TOO SOON! -100', '너무 빨라! -100'); sc = Math.max(0, sc - 100); st = 2; t = 60; return; }
+          if (--t <= 0) { fake = p.fake && Math.random() < .3; st = 1; t = 0; msg = fake ? tr("DON'T PRESS!", '누르지 마!') : tr('PRESS A!', '지금 A!'); }
         } else if (st == 1) {
           t++;
           if (P('a')) {
-            if (fake) { msg = '속았다! -100'; sc = Math.max(0, sc - 100); }
+            if (fake) { msg = tr('FOOLED! -100', '속았다! -100'); sc = Math.max(0, sc - 100); }
             else { const ms = t * 1000 / 60 | 0; msg = ms + ' ms'; sc += Math.max(0, 600 - ms); }
             st = 2; t = 60;
-          } else if (fake && t > 50) { msg = '잘 참았어!'; st = 2; t = 40; }
-          else if (t > 120) { msg = '너무 느려!'; st = 2; t = 60; }
+          } else if (fake && t > 50) { msg = tr('NICE HOLD!', '잘 참았어!'); st = 2; t = 40; }
+          else if (t > 120) { msg = tr('TOO SLOW!', '너무 느려!'); st = 2; t = 60; }
         } else if (--t <= 0) {
           if (++r >= p.rounds) return win(sc);
-          st = 0; t = 60 + rnd(120); msg = '기다려...';
+          st = 0; t = 60 + rnd(120); msg = tr('WAIT...', '기다려...');
         }
       },
       draw() {
@@ -602,7 +603,7 @@ const E = {
           R(k.x, y, k.w, 7, c); R(k.x, y, k.w, 1, lit(c, .5)); R(k.x, y + 6, k.w, 1, dim(c, .4)); R(k.x + k.w - 1, y + 1, 1, 5, dim(c, .25)); wnd(k.x, y, k.w, c); });
         const my = 136 - tw.length * 8 + sy, mc = PAL[tw.length % 7];
         R(x, my, w, 7, '#fff'); R(x + 1, my + 1, w - 2, 5, mc); wnd(x, my, w, mc);
-        hud('HEIGHT ' + (tw.length - 1), 'A: 내려놓기');
+        hud('HEIGHT ' + (tw.length - 1), tr('A: DROP', 'A: 내려놓기'));
       }
     };
   },
@@ -644,106 +645,5 @@ const PAT = {
   stripes: (c, r) => r % 2 == 0, cols: c => c % 3 != 1,
 };
 
-// [engine, name, params]
-const GAMES = [
-  ['snake', 'Snake Classic', { spd: 8 }],
-  ['snake', 'Snake Turbo', { spd: 4 }],
-  ['snake', 'Snake Wrap', { spd: 7, wrap: 1 }],
-  ['snake', 'Snake Garden', { spd: 7, obs: 15 }],
-  ['snake', 'Snake Jungle', { spd: 5, obs: 30, wrap: 1 }],
-  ['pong', 'Paddle Rookie', { cpu: 1.2, bs: 1.6, to: 5 }],
-  ['pong', 'Paddle Pro', { cpu: 2, bs: 2, to: 5 }],
-  ['pong', 'Paddle Master', { cpu: 2.6, bs: 2.4, to: 7 }],
-  ['pong', 'Paddle Tiny', { cpu: 2, bs: 2, to: 5, ph: 14 }],
-  ['pong', 'Paddle Blitz', { cpu: 2.4, bs: 3, to: 3 }],
-  ['bricks', 'Brick Wall', { rows: 5, bs: 1.6, pw: 28, pat: PAT.all }],
-  ['bricks', 'Brick Checker', { rows: 6, bs: 1.8, pw: 24, pat: PAT.checker }],
-  ['bricks', 'Brick Pyramid', { rows: 5, bs: 1.8, pw: 24, pat: PAT.pyramid }],
-  ['bricks', 'Brick Stripes', { rows: 8, bs: 2, pw: 22, pat: PAT.stripes }],
-  ['bricks', 'Brick Fortress', { rows: 8, bs: 2.2, pw: 18, pat: PAT.cols }],
-  ['shoot', 'Sky Defense', { rows: 3, cols: 7, spd: 30, fire: .01, ebs: 1.5 }],
-  ['shoot', 'Sky Patrol', { rows: 4, cols: 8, spd: 24, fire: .015, ebs: 1.8 }],
-  ['shoot', 'Sky Swarm', { rows: 5, cols: 8, spd: 20, fire: .02, ebs: 2 }],
-  ['shoot', 'Sky Rain', { rows: 3, cols: 6, spd: 24, fire: .05, ebs: 2 }],
-  ['shoot', 'Sky Siege', { rows: 5, cols: 8, spd: 14, fire: .03, ebs: 2.4 }],
-  ['dodge', 'Rock Dodge', { rate: .04, vy: 1.2, sz: [6, 6] }],
-  ['dodge', 'Hail Storm', { rate: .1, vy: 1.5, sz: [3, 3] }],
-  ['dodge', 'Boulder Fall', { rate: .03, vy: 1, sz: [14, 12] }],
-  ['dodge', 'Meteor Shower', { rate: .07, vy: 2, sz: [5, 8] }],
-  ['dodge', 'Chaos Rain', { rate: .12, vy: 2.2, sz: [4, 10] }],
-  ['fly', 'Gap Flyer', { gap: 44, grav: .15, flap: 2.8, spd: 1, every: 100 }],
-  ['fly', 'Gap Breeze', { gap: 56, grav: .15, flap: 2.8, spd: .8, every: 120 }],
-  ['fly', 'Gap Rush', { gap: 44, grav: .15, flap: 2.8, spd: 1.6, every: 70 }],
-  ['fly', 'Gap Needle', { gap: 32, grav: .15, flap: 2.8, spd: 1, every: 100 }],
-  ['fly', 'Gap Heavy', { gap: 44, grav: .25, flap: 3.4, spd: 1.2, every: 90 }],
-  ['run', 'Dash Runner', { spd: 2, jump: 4.2, gap: 50 }],
-  ['run', 'Dash Sprint', { spd: 3, jump: 4.4, gap: 40 }],
-  ['run', 'Dash Birds', { spd: 2.2, jump: 4.2, gap: 50, fly: 1 }],
-  ['run', 'Dash Moon', { spd: 2, jump: 3, g: .12, gap: 70 }],
-  ['run', 'Dash Night', { spd: 3.2, jump: 4.4, gap: 36, fly: 1 }],
-  ['mines', 'Mine Field Mini', { c: 8, r: 8, m: 8 }],
-  ['mines', 'Mine Field', { c: 10, r: 8, m: 12 }],
-  ['mines', 'Mine Field Big', { c: 16, r: 12, m: 30 }],
-  ['mines', 'Mine Field Huge', { c: 16, r: 12, m: 40 }],
-  ['mines', 'Mine Field Deadly', { c: 10, r: 8, m: 20 }],
-  ['memo', 'Twin Cards 4', { pairs: 4, c: 4 }],
-  ['memo', 'Twin Cards 6', { pairs: 6, c: 4 }],
-  ['memo', 'Twin Cards 8', { pairs: 8, c: 4 }],
-  ['memo', 'Twin Cards 10', { pairs: 10, c: 5 }],
-  ['memo', 'Twin Cards 12', { pairs: 12, c: 6 }],
-  ['echo', 'Echo', { spd: 30, start: 1 }],
-  ['echo', 'Echo Fast', { spd: 18, start: 1 }],
-  ['echo', 'Echo Long', { spd: 24, start: 4 }],
-  ['echo', 'Echo Reverse', { spd: 30, start: 1, rev: 1 }],
-  ['echo', 'Echo Blitz', { spd: 12, start: 3 }],
-  ['whack', 'Mole Bonk', { n: 3, time: 30, up: 60, rate: .03 }],
-  ['whack', 'Mole Bonk Quick', { n: 3, time: 30, up: 35, rate: .05 }],
-  ['whack', 'Mole Bonk 4x4', { n: 4, time: 40, up: 60, rate: .05 }],
-  ['whack', 'Mole Frenzy', { n: 4, time: 30, up: 30, rate: .09 }],
-  ['whack', 'Mole Bonk 5x5', { n: 5, time: 45, up: 50, rate: .07 }],
-  ['flip', 'Light Flip 3', { n: 3, k: 3 }],
-  ['flip', 'Light Flip 4', { n: 4, k: 4 }],
-  ['flip', 'Light Flip 5', { n: 5, k: 5 }],
-  ['flip', 'Light Flip 5+', { n: 5, k: 9 }],
-  ['flip', 'Light Flip 6', { n: 6, k: 8 }],
-  ['slide', 'Slide 3', { n: 3, mix: 60 }],
-  ['slide', 'Slide 3 Hard', { n: 3, mix: 400 }],
-  ['slide', 'Slide 4', { n: 4, mix: 200 }],
-  ['slide', 'Slide 4 Hard', { n: 4, mix: 800 }],
-  ['slide', 'Slide 5', { n: 5, mix: 400 }],
-  ['catch', 'Fruit Catch', { rate: .03, vy: 1, bad: .15 }],
-  ['catch', 'Fruit Rush', { rate: .06, vy: 1.6, bad: .15 }],
-  ['catch', 'Bomb Catch', { rate: .05, vy: 1.2, bad: .45 }],
-  ['catch', 'Careful Catch', { vy: 1, bad: .1, strict: 1 }],
-  ['catch', 'Storm Catch', { rate: .07, vy: 1.8, bad: .3 }],
-  ['maze', 'Maze Small', { c: 8, r: 6, time: 60 }],
-  ['maze', 'Maze Medium', { c: 12, r: 9, time: 90 }],
-  ['maze', 'Maze Large', { c: 20, r: 16, time: 150 }],
-  ['maze', 'Maze Dark', { c: 12, r: 9, time: 120, dark: 2 }],
-  ['maze', 'Maze Dark Large', { c: 20, r: 16, time: 200, dark: 3 }],
-  ['react', 'Quick Draw', { rounds: 3 }],
-  ['react', 'Quick Draw 5', { rounds: 5 }],
-  ['react', 'Quick Fake', { rounds: 5, fake: 1 }],
-  ['react', 'Quick Draw 10', { rounds: 10 }],
-  ['react', 'Quick Fake 10', { rounds: 10, fake: 1 }],
-  ['ttt', 'Tic Tac Easy', { ai: 0, rounds: 3 }],
-  ['ttt', 'Tic Tac Normal', { ai: 1, rounds: 3 }],
-  ['ttt', 'Tic Tac Hard', { ai: 2, rounds: 3 }],
-  ['ttt', 'Tic Tac Marathon', { ai: 1, rounds: 5 }],
-  ['ttt', 'Tic Tac Master', { ai: 2, rounds: 5 }],
-  ['hop', 'Road Hop', { lanes: 5, spd: .8 }],
-  ['hop', 'Road Hop Busy', { lanes: 8, spd: 1 }],
-  ['hop', 'Highway Hop', { lanes: 12, spd: 1 }],
-  ['hop', 'Rush Hour', { lanes: 8, spd: 1.6 }],
-  ['hop', 'Road Hop Insane', { lanes: 12, spd: 1.8 }],
-  ['stack', 'Tower Stack', { w: 60, spd: 1.2, acc: .05, snap: 3 }],
-  ['stack', 'Tower Fast', { w: 60, spd: 2, acc: .08, snap: 2 }],
-  ['stack', 'Tower Thin', { w: 36, spd: 1.2, acc: .05, snap: 2 }],
-  ['stack', 'Tower Precise', { w: 50, spd: 1.5, acc: .05, snap: 0 }],
-  ['stack', 'Tower Mad', { w: 40, spd: 2.5, acc: .1, snap: 1 }],
-  ['race', 'Lane Racer', { lanes: 3, spd: 2, gap: 40 }],
-  ['race', 'Lane Racer 4', { lanes: 4, spd: 2.2, gap: 30 }],
-  ['race', 'Lane Racer 5', { lanes: 5, spd: 2.4, gap: 22 }],
-  ['race', 'Night Racer', { lanes: 3, spd: 3.2, gap: 28 }],
-  ['race', 'Turbo Racer', { lanes: 5, spd: 3.5, gap: 16 }],
-];
+// Menu entries and their difficulty/theme options live in library.js; it fills GAMES.
+const GAMES = [];

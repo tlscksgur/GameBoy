@@ -110,7 +110,7 @@ E.adv = p => {
   for (let x = 0; x < W;) {
     if (x < 7 || x >= W - tail) { col(x++, h); continue; }
     const r = rng(), n = 3 + (rng() * 4 | 0);
-    if (r < (gun ? .08 : .2)) { x += 2 + (p.lv > 1 && rng() < .4 ? 1 : 0); col(x, h); continue; } // pit, 2-3 wide
+    if (r < (gun ? .08 : .2)) { x += 2 + (p.lv > 1 && rng() < .4 ? 1 : 0); col(x++, h); continue; } // pit, 2-3 wide, then a landing column the next segment can't overlap
     if (r < .4) h = clamp(h + (rng() < .5 ? -1 : 1), 1, 4);
     for (let i = 0; i < n; i++) col(x + i, h);
     const top = ROWS - h;
@@ -286,21 +286,8 @@ E.adv = p => {
       eb.forEach(b => { R(b.x - 2 + ox, b.y - 2 + Y, 4, 4, '#b13e53'); R(b.x - 1 + ox, b.y - 1 + Y, 2, 2, '#ffcd75'); });
       parts.forEach(q => R(q.x + ox, q.y + Y, q.life > 10 ? 2 : 1, q.life > 10 ? 2 : 1, q.c));
       if (boss && cam >= camMax && !boss.dead) { R(30, 14, 100, 4, '#1a1c2c'); R(31, 15, 98 * boss.hp / boss.max, 2, '#b13e53'); T('BOSS', 2, 13, '#f4f4f4'); }
-      if (fc < 100) { R(20, 52, 120, 26, '#1a1c2cdd'); B(20, 52, 120, 26, '#ffcd75'); T('STAGE ' + (p.lv + 1), 80, 56, '#ffcd75', 'center'); T(th.name, 80, 66, '#f4f4f4', 'center'); }
+      if (fc < 100) { R(20, 52, 120, 26, '#1a1c2cdd'); B(20, 52, 120, 26, '#ffcd75'); T('STAGE ' + ((p.stage ?? p.theme) + 1), 80, 56, '#ffcd75', 'center'); T(th.name, 80, 66, '#f4f4f4', 'center'); }
       hud('♥'.repeat(lives) + (gun ? '' : '  ◆' + gems), 'SCORE ' + sc);
     }
   };
 };
-
-GAMES.push(
-  ['adv', 'Sprout Quest: Meadow', { mode: 'plat', theme: 0, lv: 0, len: 70, seed: 11 }],
-  ['adv', 'Sprout Quest: Dusk', { mode: 'plat', theme: 1, lv: 1, len: 80, seed: 22 }],
-  ['adv', 'Sprout Quest: Desert', { mode: 'plat', theme: 2, lv: 2, len: 90, seed: 33 }],
-  ['adv', 'Sprout Quest: Frost', { mode: 'plat', theme: 3, lv: 3, len: 95, seed: 44 }],
-  ['adv', 'Sprout Quest: Night', { mode: 'plat', theme: 4, lv: 4, len: 105, seed: 55 }],
-  ['adv', 'Iron Trooper: Jungle', { mode: 'gun', theme: 0, lv: 0, len: 65, seed: 66 }],
-  ['adv', 'Iron Trooper: Dusk', { mode: 'gun', theme: 1, lv: 1, len: 75, seed: 77 }],
-  ['adv', 'Iron Trooper: Desert', { mode: 'gun', theme: 2, lv: 2, len: 85, seed: 88 }],
-  ['adv', 'Iron Trooper: Snow', { mode: 'gun', theme: 3, lv: 3, len: 90, seed: 99 }],
-  ['adv', 'Iron Trooper: Fortress', { mode: 'gun', theme: 4, lv: 4, len: 100, seed: 111 }],
-);

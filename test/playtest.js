@@ -1,4 +1,4 @@
-// Bot playtest: simple bots play the action games by reading what draw() paints, then report
+// Bot playtest (classic games; newer ones are in newgames.js): simple bots play the action games by reading what draw() paints, then report
 // win / game over / survival time. Run: node test/playtest.js
 const fs = require('fs'), vm = require('vm'), path = require('path');
 let rects = [], texts = [];
@@ -10,9 +10,9 @@ const ctx = new Proxy({ fillStyle: '' }, {
   set: (o, k, v) => (o[k] = v, true),
 });
 const sb = { document: { getElementById: () => ({ getContext: () => ctx }), querySelectorAll: () => [], createElement: () => ({ getContext: () => new Proxy({}, { get: () => () => {}, set: () => true }) }) },
-  addEventListener() {}, requestAnimationFrame() {}, performance, localStorage: { getItem: () => null, setItem() {} }, console, Math };
+  addEventListener() {}, requestAnimationFrame() {}, setTimeout() {}, performance, localStorage: { getItem: () => null, setItem() {} }, console, Math };
 vm.createContext(sb);
-for (const f of ['games.js', 'adventure.js', 'sprites.js', 'main.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), sb, { filename: f });
+for (const f of ['games.js', 'adventure.js', 'sprites.js', 'games2.js', 'library.js', 'main.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), sb, { filename: f });
 const G = vm.runInContext('({ GAMES, start, tick, press, get mode() { return mode }, get result() { return result }, get cur() { return cur }, draw: () => cur.draw() })', sb);
 
 const find = (c, w, h) => rects.filter(r => r.c == c && (w == null || r.w == w) && (h == null || r.h == h));
@@ -86,7 +86,7 @@ let cur = 0, rnd5 = 0;
 const MAX = 60 * 60 * 3; const ONLY = process.argv[2] ? process.argv[2].split(',').map(Number) : null; // 3 minutes per game
 const rows = [];
 G.GAMES.forEach(([eng, name, p], i) => {
-  const bot = BOTS[eng]; if (!bot || (ONLY && !ONLY.includes(i + 1))) return;
+  const bot = BOTS[eng]; if (!bot || (ONLY ? !ONLY.includes(i + 1) : G.GAMES[i][4] != 1 || G.GAMES[i][5] != 0)) return; // default: NORMAL + first theme of each game
   cur = i; for (const k of ['up', 'down', 'left', 'right', 'a', 'b']) G.press(k, 0);
   G.start(i); let f = 0, held = new Set();
   for (; f < MAX && G.mode == 'play'; f++) {
