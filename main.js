@@ -1,6 +1,7 @@
 // Console shell: input, drawing helpers, menu, game loop. Games live in games.js.
 const W = 160, H = 144, cv = document.getElementById('scr'), g = cv.getContext('2d');
 g.scale(2, 2); // canvas is 2x so text stays readable
+g.imageSmoothingEnabled = false; // crisp pixel-art sprites
 
 const held = {}, pressed = {}, hold = {}, DIRK = ['up', 'down', 'left', 'right'];
 const KEYMAP = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', KeyZ: 'a', Space: 'a',
