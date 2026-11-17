@@ -20,7 +20,8 @@ const LIB = [
     d: [{ spd: 1, gspd: .8, ghosts: 3, fright: 420 }, { spd: 1, gspd: .92, ghosts: 4, fright: 360 }, { spd: 1.2, gspd: 1.12, ghosts: 4, fright: 280 }],
     t: [[['Classic', '클래식'], { hue: '#3b5dc9', rounds: 2 }], [['Neon', '네온'], { hue: '#ff8fd1', rounds: 2 }], [['Dark', '어둠'], { hue: '#7ae582', rounds: 1, dark: 1 }], [['Marathon', '마라톤'], { hue: '#ffb347', rounds: 4 }]] },
   { e: 'gems', n: ['Gem Match', '보석 맞추기'], h: ['A:GRAB then arrows:SWAP', 'A:잡고 방향키로 교환'],
-    d: [{ colors: 5 }, { colors: 6 }, { colors: 7 }], t: [[['Move Limit', '횟수 제한'], { moves: 30, target: 1600 }], [['Time Attack', '시간 제한'], { time: 60, target: 2500 }]] },
+    // tgt = [move-limit, time-attack] goal, tuned from human-paced runs in Chrome (~75% / 50% / 25% clear rate)
+    d: [{ colors: 5, tgt: [3300, 1800] }, { colors: 6, tgt: [2400, 1600] }, { colors: 7, tgt: [2200, 1200] }], t: [[['Move Limit', '횟수 제한'], { moves: 30 }], [['Time Attack', '시간 제한'], { time: 60 }]] },
   { e: 'golf', n: ['Putt Park', '미니 골프'], h: ['←→:AIM  hold A:POWER', '←→:조준  A길게:힘'],
     d: [{ cup: 5 }, { cup: 3.5 }, { cup: 2.6 }],
     t: [[['Holes 1-3', '1-3번 홀'], { holes: [0, 1, 2] }], [['Holes 4-6', '4-6번 홀'], { holes: [3, 4, 5] }], [['Holes 7-9', '7-9번 홀'], { holes: [6, 7, 8] }], [['Full 9', '전체 9홀'], { holes: [0, 1, 2, 3, 4, 5, 6, 7, 8] }]] },
@@ -28,7 +29,7 @@ const LIB = [
     d: [{ bpm: 100, dens: .45, dbl: 0, beats: 48, v: 1.4 }, { bpm: 120, dens: .5, dbl: .08, beats: 64, v: 1.8, half: 1 }, { bpm: 150, dens: .6, dbl: .12, beats: 88, v: 2.3, half: 1 }],
     t: [[['Neon Step', '네온 스텝'], { seed: 11 }], [['Pixel Pop', '픽셀 팝'], { seed: 22 }], [['Night Drive', '밤 드라이브'], { seed: 33 }], [['Star Beat', '별빛 비트'], { seed: 44 }]] },
   { e: 'fish', n: ['Fishing Day', '낚시'], h: ['hold A:CAST  A:HOOK/REEL', 'A길게:던지기  A:챔질/감기'],
-    d: [{ time: 90, target: 250, bite: 1.3 }, { time: 90, target: 400, bite: 1 }, { time: 75, target: 500, bite: .8 }],
+    d: [{ time: 90, target: 330, bite: 1.3 }, { time: 90, target: 380, bite: 1 }, { time: 75, target: 350, bite: .8 }], // tuned from human-paced runs in Chrome
     t: [[['Lake', '호수'], { theme: 0 }], [['Sunset', '노을 연못'], { theme: 1 }], [['Night', '밤 호수'], { theme: 2 }], [['Frozen', '얼음 호수'], { theme: 3 }], [['Deep Sea', '바다'], { theme: 4 }]] },
   { e: 'snake', n: ['Snake', '뱀 게임'], h: ['arrows: turn', '방향키: 방향 전환'],
     d: [{ spd: 8 }, { spd: 6 }, { spd: 4 }], t: [[['Classic', '클래식'], {}], [['Wrap', '벽 통과'], { wrap: 1 }], [['Garden', '정원'], { obs: 15 }], [['Jungle', '정글'], { obs: 30, wrap: 1 }]] },

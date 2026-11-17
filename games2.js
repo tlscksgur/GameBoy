@@ -329,6 +329,7 @@ const gemSpr = memo(i => bake(13, 13, px => { const c = GEMC[i], f = GEMF[i];
   px(4, 3, 2, 1, '#ffffff'); px(3, 4, 1, 1, '#ffffff'); }));
 
 E.gems = p => {
+  p = { ...p, target: p.target || p.tgt[p.time ? 1 : 0] };
   const N = 8, cs = 15, ox = 38, oy = 16, NC = p.colors, b = [], ofy = Array(N * N).fill(0), c = { x: 3, y: 3 }, parts = [];
   let grab = 0, sc = 0, moves = p.moves || 0, tm = (p.time || 0) * 60, st = 'idle', at = 0, sw = null, combo = 1, marked = new Set(), msg = '', mt = 0;
   const runs = () => { const m = new Set(); for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const i = y * N + x, v = b[i];
