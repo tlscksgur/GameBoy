@@ -8,7 +8,7 @@ const sb = { document: { getElementById: () => ({ getContext: () => ctx }), quer
   localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => store[k] = String(v) }, Date: { now: () => clock } };
 sb.Date = Object.assign(function () { return new Date(clock); }, { now: () => clock });
 vm.createContext(sb);
-for (const f of ['games.js', 'adventure.js', 'sprites.js', 'games2.js', 'games3.js', 'games4.js', 'library.js', 'main.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), sb, { filename: f });
+for (const f of ['games.js', 'adventure.js', 'sprites.js', 'games2.js', 'games3.js', 'games4.js', 'games5.js', 'library.js', 'main.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), sb, { filename: f });
 const G = vm.runInContext('({ GAMES, start, tick, press, draw: () => draw(), get mode() { return mode }, get result() { return result }, get cur() { return cur } })', sb);
 const KEYS = ['up', 'down', 'left', 'right', 'a', 'b'], DV = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
 const dirOf = (dx, dy) => Object.keys(DV).find(k => DV[k][0] == dx && DV[k][1] == dy);

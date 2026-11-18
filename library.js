@@ -61,10 +61,18 @@ const LIB = [
     d: [{ depth: 3, lv: 0 }, { depth: 5, lv: 0 }, { depth: 7, lv: 1 }], t: [[['Stone', '돌'], { theme: 0 }], [['Moss', '이끼'], { theme: 1 }], [['Ice', '얼음'], { theme: 2 }]] },
   { e: 'blackjack', n: ['Blackjack', '블랙잭'], h: ['beat the dealer to 21', '딜러보다 21에 가깝게'],
     d: [{ chips: 100, goal: 200, decks: 1 }, { chips: 100, goal: 300, decks: 4 }, { chips: 100, goal: 500, decks: 6, h17: 1 }], t: [[['Green', '초록'], { theme: 0 }], [['Red', '빨강'], { theme: 1 }], [['Blue', '파랑'], { theme: 2 }]] },
+  { e: 'omok', n: ['Five Stones', '오목'], h: ['5 in a row wins  arrows+A', '5줄 먼저  방향키+A'], dl: [['VS CPU EASY', 'CPU 쉬움'], ['VS CPU HARD', 'CPU 어려움'], ['2 PLAYERS', '2인용']],
+    d: [{ ai: 0 }, { ai: 1 }, { two: 1 }], t: [[['Wood', '나무판'], { theme: 0 }], [['Jade', '옥판'], { theme: 1 }], [['Night', '밤'], { theme: 2 }]] },
+  { e: 'four', n: ['Four in a Row', '사목'], h: ['←→ pick column  A: drop', '←→ 칸 고르기  A: 넣기'], dl: [['VS CPU EASY', 'CPU 쉬움'], ['VS CPU HARD', 'CPU 어려움'], ['2 PLAYERS', '2인용']],
+    d: [{ depth: 2, rand: .35 }, { depth: 5, rand: 0 }, { two: 1 }], t: [[['Classic', '클래식'], { theme: 0 }], [['Wood', '나무'], { theme: 1 }], [['Candy', '사탕'], { theme: 2 }]] },
+  { e: 'sea', n: ['Sea Battle', '해전'], h: ['sink all 4 ships  arrows+A', '배 4척 먼저 격침  방향키+A'], dl: [['VS CPU EASY', 'CPU 쉬움'], ['VS CPU HARD', 'CPU 어려움'], ['2 PLAYERS', '2인용']],
+    d: [{ ai: 0 }, { ai: 1 }, { two: 1 }], t: [[['Ocean', '바다'], { theme: 0 }], [['Night Sea', '밤바다'], { theme: 1 }], [['Arctic', '북극'], { theme: 2 }]] },
+  { e: 'duel', n: ['Quick Duel', '반응 대결'], h: ['P1: arrows  P2: A/B', 'P1: 방향키  P2: A/B'], dl: [['VS CPU EASY', 'CPU 쉬움'], ['VS CPU HARD', 'CPU 어려움'], ['2 PLAYERS', '2인용']],
+    base: { to: 3 }, d: [{ cpu: 28, cpuj: 14 }, { cpu: 14, cpuj: 8 }, { two: 1, cpu: 0 }], t: [[['Western', '서부'], { theme: 0 }], [['Samurai', '사무라이'], { theme: 1 }], [['Space', '우주'], { theme: 2 }]] },
   { e: 'snake', n: ['Snake', '뱀 게임'], h: ['arrows: turn', '방향키: 방향 전환'],
     d: [{ spd: 8 }, { spd: 6 }, { spd: 4 }], t: [[['Classic', '클래식'], {}], [['Wrap', '벽 통과'], { wrap: 1 }], [['Garden', '정원'], { obs: 15 }], [['Jungle', '정글'], { obs: 30, wrap: 1 }]] },
-  { e: 'pong', n: ['Paddle', '탁구'], h: ['↑↓: move', '↑↓: 이동'],
-    d: [{ cpu: 1.2, bs: 1.6 }, { cpu: 2, bs: 2 }, { cpu: 2.6, bs: 2.4 }], t: [[['First to 5', '5점 선승'], { to: 5 }], [['Tiny Paddle', '작은 라켓'], { to: 5, ph: 14 }], [['First to 9', '9점 선승'], { to: 9 }]] },
+  { e: 'pong', n: ['Paddle', '탁구'], h: ['↑↓: move  2P: A/B', '↑↓: 이동  2인: A/B'], dl: [...DIFF, ['2 PLAYERS', '2인용']],
+    d: [{ cpu: 1.2, bs: 1.6 }, { cpu: 2, bs: 2 }, { cpu: 2.6, bs: 2.4 }, { two: 1, bs: 2 }], t: [[['First to 5', '5점 선승'], { to: 5 }], [['Tiny Paddle', '작은 라켓'], { to: 5, ph: 14 }], [['First to 9', '9점 선승'], { to: 9 }]] },
   { e: 'bricks', n: ['Brick Break', '벽돌깨기'], h: ['←→:MOVE  A:LAUNCH', '←→:이동  A:발사'],
     d: [{ bs: 1.6, pw: 28 }, { bs: 1.9, pw: 24 }, { bs: 2.2, pw: 18 }],
     t: [[['Wall', '벽'], { rows: 5, pat: PAT.all }], [['Checker', '체크무늬'], { rows: 6, pat: PAT.checker }], [['Pyramid', '피라미드'], { rows: 5, pat: PAT.pyramid }], [['Stripes', '줄무늬'], { rows: 8, pat: PAT.stripes }], [['Fortress', '요새'], { rows: 8, pat: PAT.cols }]] },
@@ -101,7 +109,7 @@ const LIB = [
   { e: 'react', n: ['Quick Draw', '반응속도'], h: ['A when it turns green', '초록색이 되면 A'],
     d: [{ rounds: 3 }, { rounds: 5 }, { rounds: 10 }], t: [[['Normal', '기본'], {}], [['Fakes', '속임수'], { fake: 1 }]] },
   { e: 'ttt', n: ['Tic Tac Toe', '틱택토'], h: ['arrows + A: place', '방향키 + A: 놓기'],
-    d: [{ ai: 0 }, { ai: 1 }, { ai: 2 }], t: [[['3 Rounds', '3판'], { rounds: 3 }], [['5 Rounds', '5판'], { rounds: 5 }]] },
+    dl: [...DIFF, ['2 PLAYERS', '2인용']], d: [{ ai: 0 }, { ai: 1 }, { ai: 2 }, { ai: 3 }], t: [[['3 Rounds', '3판'], { rounds: 3 }], [['5 Rounds', '5판'], { rounds: 5 }]] },
   { e: 'hop', n: ['Road Hop', '길 건너기'], h: ['arrows: hop', '방향키: 이동'],
     d: [{ spd: .7 }, { spd: 1 }, { spd: 1.6 }], t: [[['Road', '도로'], { lanes: 5 }], [['Busy Street', '복잡한 길'], { lanes: 8 }], [['Highway', '고속도로'], { lanes: 12 }]] },
   { e: 'stack', n: ['Tower Stack', '탑 쌓기'], h: ['A: drop the block', 'A: 블록 내려놓기'],
@@ -112,4 +120,4 @@ const LIB = [
 // Every playable combination: [engine, name, params, game, difficulty, theme]. Menu and tests both start games from here.
 const NOTHEME = [[['-', '-'], {}]];
 LIB.forEach((G, gi) => G.d.forEach((dp, di) => (G.t || NOTHEME).forEach(([tn, tp], ti) =>
-  GAMES.push([G.e, G.n[0] + ' / ' + DIFF[di][0] + ' / ' + tn[0], { ...G.base, ...dp, ...tp }, gi, di, ti]))));
+  GAMES.push([G.e, G.n[0] + ' / ' + (G.dl || DIFF)[di][0] + ' / ' + tn[0], { ...G.base, ...dp, ...tp }, gi, di, ti]))));

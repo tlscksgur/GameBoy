@@ -51,13 +51,14 @@ const E = {
     return {
       update() {
         py = clamp(py + (K('down') - K('up')) * 3, 14, 144 - PH);
-        cy = clamp(cy + clamp((b.vx > 0 ? b.y : 78) - cy - PH / 2, -p.cpu, p.cpu), 14, 144 - PH); // CPU only chases incoming balls
+        cy = clamp(cy + (p.two ? (K('b') - K('a')) * 3 : clamp((b.vx > 0 ? b.y : 78) - cy - PH / 2, -p.cpu, p.cpu)), 14, 144 - PH); // CPU only chases incoming balls
         b.x += b.vx; b.y += b.vy;
         if (b.y < 14 || b.y > 141) { b.vy = -b.vy; b.y = clamp(b.y, 14, 141); }
         if (b.vx < 0 && b.x <= 8 && b.x >= 2 && b.y + 3 >= py && b.y <= py + PH) bounce(py, 1);
         if (b.vx > 0 && b.x >= 149 && b.x <= 155 && b.y + 3 >= cy && b.y <= cy + PH) bounce(cy, -1);
         if (b.x < -4) { cs++; serve(1); }
         if (b.x > 164) { ps++; serve(-1); }
+        if (p.two && Math.max(ps, cs) >= p.to) return win(0, ps > cs ? 'P1 WINS' : 'P2 WINS');
         if (ps >= p.to) return win(ps * 100);
         if (cs >= p.to) return end(ps * 100);
       },
@@ -66,7 +67,7 @@ const E = {
         const pad = (x, y, c) => { R(x, y, 4, PH, c); R(x, y, 1, PH, lit(c)); R(x + 3, y, 1, PH, dim(c)); R(x, y, 4, 1, lit(c, .7)); R(x, y + PH - 1, 4, 1, dim(c, .6));
           for (let k = 4; k < PH - 3; k += 4) R(x + 1, y + k, 2, 1, dim(c, .25)); };
         pad(4, py, '#4cc9f0'); pad(152, cy, '#ff5d5d'); DI(GS.ball, b.x, b.y);
-        hud('YOU ' + ps + ' : ' + cs + ' CPU', 'TO ' + p.to);
+        hud(p.two ? 'P1 ' + ps + ' : ' + cs + ' P2' : 'YOU ' + ps + ' : ' + cs + ' CPU', 'TO ' + p.to);
       }
     };
   },
@@ -516,20 +517,20 @@ const E = {
     };
     const fin = () => {
       const r = res(); if (!r) return;
-      if (r == 1) { w++; msg = 'YOU WIN'; } else if (r == 2) { l++; msg = 'CPU WIN'; } else msg = 'DRAW';
+      if (r == 1) { w++; msg = p.ai == 3 ? 'P1 WIN' : 'YOU WIN'; } else if (r == 2) { l++; msg = p.ai == 3 ? 'P2 WIN' : 'CPU WIN'; } else msg = 'DRAW';
       wait = 60;
     };
     return {
       update() {
         if (wait) {
           if (--wait) return;
-          if (++round >= p.rounds) return (w > l ? win : end)(w * 100);
+          if (++round >= p.rounds) return p.ai == 3 ? win(0, w > l ? 'P1 WINS' : l > w ? 'P2 WINS' : 'DRAW') : (w > l ? win : end)(w * 100);
           b.fill(0); turn = round % 2 ? 2 : 1; msg = '';
         }
-        if (turn == 2) { b[cpu()] = 2; turn = 1; return fin(); }
+        if (turn == 2 && p.ai < 3) { b[cpu()] = 2; turn = 1; return fin(); }
         moveCursor(c, 3, 3);
         const i = c.y * 3 + c.x;
-        if (P('a') && !b[i]) { b[i] = 1; turn = 2; fin(); }
+        if (P('a') && !b[i]) { b[i] = turn; turn = 3 - turn; fin(); }
       },
       draw() {
         DI(BG('felt'), 0, 12); bevel(23, 15, 114, 114, '#9c6b48', 2);
@@ -538,9 +539,9 @@ const E = {
           R(X + 1, Y + 1, 34, 34, '#2b4a3a'); R(X + 1, Y + 1, 34, 1, '#1f3a2c'); R(X + 1, Y + 1, 1, 34, '#1f3a2c');
           if (b[i]) DI(b[i] == 1 ? GS.X : GS.O, X + 6, Y + 6, 24, 24);
         }
-        if (!wait) B(26 + c.x * 36, 18 + c.y * 36, 36, 36, '#ffe66d');
+        if (!wait) B(26 + c.x * 36, 18 + c.y * 36, 36, 36, p.ai == 3 && turn == 2 ? '#ff5d5d' : '#ffe66d');
         if (msg) { R(40, 64, 80, 16, '#000d'); T(msg, 80, 68, '#fff', 'center'); }
-        hud('WIN ' + w + ' LOSE ' + l, 'R' + Math.min(round + 1, p.rounds) + '/' + p.rounds);
+        hud(p.ai == 3 ? 'P1 ' + w + ' P2 ' + l + (wait ? '' : turn == 1 ? '  P1>X' : '  P2>O') : 'WIN ' + w + ' LOSE ' + l, 'R' + Math.min(round + 1, p.rounds) + '/' + p.rounds);
       }
     };
   },

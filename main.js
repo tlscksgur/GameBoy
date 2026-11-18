@@ -43,12 +43,12 @@ try { best = JSON.parse(localStorage.getItem('pocket-best2')) || {}; } catch {}
 const key = i => GAMES[i][3] + '.' + GAMES[i][4] + '.' + GAMES[i][5];
 const comboOf = (g_, d, t) => GAMES.findIndex(c => c[3] == g_ && c[4] == d && c[5] == t);
 const start = i => { gi = i; cur = E[GAMES[i][0]](GAMES[i][2]); mode = 'play'; paused = false; };
-const finish = (sc, won) => {
-  result = { sc, won, nb: sc > (best[key(gi)] || 0), t: 0 };
+const finish = (sc, won, m) => {
+  result = { sc, won, m, nb: sc > (best[key(gi)] || 0), t: 0 };
   if (result.nb) { best[key(gi)] = sc; try { localStorage.setItem('pocket-best2', JSON.stringify(best)); } catch {} }
   mode = 'over';
 };
-const end = sc => finish(sc, 0), win = sc => finish(sc, 1);
+const end = (sc, m) => finish(sc, 0, m), win = (sc, m) => finish(sc, 1, m); // m: custom title, e.g. 'P1 WINS'
 const toOpts = () => { mode = 'opts'; [od, ot] = memo_[sel] || [1, 0]; orow = 0; };
 
 function update() {
@@ -101,7 +101,7 @@ function draw() {
     const row = (r, y, label, val) => { const on = orow == r;
       R(8, y, 144, 20, on ? '#e8573f' : '#1a1c2c'); B(8, y, 144, 20, on ? '#ffcd75' : '#333c57');
       T(label, 14, y + 6, on ? '#fff' : '#94b0c2'); T((on ? '◀ ' : '') + val + (on ? ' ▶' : ''), 146, y + 6, '#fff', 'right'); };
-    row(0, 46, tr('DIFFICULTY', '난이도'), nm(DIFF[od]));
+    row(0, 46, G_.dl ? tr('MODE', '모드') : tr('DIFFICULTY', '난이도'), nm((G_.dl || DIFF)[od]));
     if (G_.t) row(1, 70, tr('THEME', '테마'), nm(G_.t[ot][0]));
     const sy = G_.t ? 94 : 70, on = orow == (G_.t ? 2 : 1);
     R(40, sy, 80, 18, on ? '#7ae582' : '#257179'); B(40, sy, 80, 18, on ? '#fff' : '#38b764'); T(tr('START', '시작'), 80, sy + 5, on ? '#1a1c2c' : '#c6ffcb', 'center');
@@ -113,7 +113,7 @@ function draw() {
   if (paused) { R(40, 60, 80, 20, '#000d'); T('PAUSED', 80, 66, '#fff', 'center'); }
   if (mode == 'over') {
     R(20, 40, 120, 64, '#000e'); B(20, 40, 120, 64, result.won ? '#7ae582' : '#ff5d5d');
-    T(result.won ? 'CLEAR!' : 'GAME OVER', 80, 47, result.won ? '#7ae582' : '#ff5d5d', 'center', 12);
+    T(result.m || (result.won ? 'CLEAR!' : 'GAME OVER'), 80, 47, result.won ? '#7ae582' : '#ff5d5d', 'center', 12);
     T('SCORE ' + result.sc, 80, 64, '#fff', 'center');
     if (result.nb) T('NEW BEST!', 80, 75, '#ffe66d', 'center');
     T(tr('A:RETRY  B:BACK', 'A:다시  B:뒤로'), 80, 89, '#aab', 'center');
