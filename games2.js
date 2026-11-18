@@ -1,6 +1,6 @@
 // 8 more engines: block puzzle, dungeon crawler, vertical shooter, gem match,
 // maze chomper, mini golf, rhythm, fishing. Uses helpers from main.js / adventure.js / sprites.js.
-{
+// The helpers up to the synth are global: games3.js uses them too.
 const D4 = [['up', 0, -1], ['down', 0, 1], ['left', -1, 0], ['right', 1, 0]];
 const ov = (a, b) => a[0] < b[0] + b[2] && a[0] + a[2] > b[0] && a[1] < b[1] + b[3] && a[1] + a[3] > b[1];
 const jp = k => !!pressed[k]; // fresh press only (no auto-repeat)
@@ -18,6 +18,7 @@ const tone = (f, d = .1, type = 'square', v = .04) => { try {
   a.gain.setValueAtTime(v, t0); a.gain.exponentialRampToValueAtTime(.0001, t0 + d); o.connect(a).connect(AC.destination); o.start(t0); o.stop(t0 + d);
 } catch {} };
 
+{
 // ================= Block puzzle
 const PIECES = { I: ['....', 'IIII', '....', '....'], O: ['OO', 'OO'], T: ['.T.', 'TTT', '...'], S: ['.SS', 'SS.', '...'], Z: ['ZZ.', '.ZZ', '...'], J: ['J..', 'JJJ', '...'], L: ['..L', 'LLL', '...'] };
 const PCOL = { I: '#4cc9f0', O: '#ffe66d', T: '#9b8cff', S: '#7ae582', Z: '#ff5d5d', J: '#3b5dc9', L: '#ffb347', G: '#566c86' };

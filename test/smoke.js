@@ -5,7 +5,7 @@ const ctx2d = new Proxy({}, { get: () => () => {}, set: () => true });
 const sandbox = { document: { getElementById: () => ({ getContext: () => ctx2d }), querySelectorAll: () => [], createElement: () => ({ getContext: () => ctx2d }) },
   addEventListener() {}, requestAnimationFrame() {}, performance: { now: () => 0 }, localStorage: { getItem: () => null, setItem() {} }, console, Math, setTimeout() {} };
 vm.createContext(sandbox);
-for (const f of ['games.js', 'adventure.js', 'sprites.js', 'games2.js', 'library.js', 'main.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), sandbox, { filename: f });
+for (const f of ['games.js', 'adventure.js', 'sprites.js', 'games2.js', 'games3.js', 'games4.js', 'library.js', 'main.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), sandbox, { filename: f });
 vm.runInContext(`
   if (LIB.length < 30) throw Error('expected 30 games, got ' + LIB.length);
   LIB.forEach(G => { if (!E[G.e]) throw Error('missing engine ' + G.e); });

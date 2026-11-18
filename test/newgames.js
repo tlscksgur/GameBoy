@@ -5,7 +5,7 @@ const ctx = new Proxy({}, { get: () => () => {}, set: () => true });
 const sb = { document: { getElementById: () => ({ getContext: () => ctx }), querySelectorAll: () => [], createElement: () => ({ getContext: () => ctx }) },
   addEventListener() {}, requestAnimationFrame() {}, setTimeout() {}, performance: { now: () => 0 }, localStorage: { getItem: () => null, setItem() {} }, console, Math };
 vm.createContext(sb);
-for (const f of ['games.js', 'adventure.js', 'sprites.js', 'games2.js', 'library.js', 'main.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), sb, { filename: f });
+for (const f of ['games.js', 'adventure.js', 'sprites.js', 'games2.js', 'games3.js', 'games4.js', 'library.js', 'main.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), sb, { filename: f });
 const G = vm.runInContext('({ GAMES, LIB, start, tick, press, get mode() { return mode }, get result() { return result }, get cur() { return cur } })', sb);
 const KEYS = ['up', 'down', 'left', 'right', 'a', 'b'];
 const DIRV = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
