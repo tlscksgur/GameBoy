@@ -10,7 +10,7 @@ const press = (k, on) => { if (on && !held[k]) pressed[k] = 1; held[k] = on; };
 addEventListener('keydown', e => { const k = KEYMAP[e.code]; if (k) { e.preventDefault(); press(k, 1); } });
 addEventListener('keyup', e => { const k = KEYMAP[e.code]; if (k) press(k, 0); });
 addEventListener('blur', () => Object.keys(held).forEach(k => press(k, 0)));
-document.addEventListener('contextmenu', e => e.preventDefault()); // long-press menu on phones
+addEventListener('contextmenu', e => e.preventDefault()); // long-press menu on phones
 document.querySelectorAll('[data-k]').forEach(b => {
   const k = b.dataset.k;
   b.addEventListener('pointerdown', e => { e.preventDefault(); b.setPointerCapture(e.pointerId); press(k, 1); b.classList.add('on'); });
