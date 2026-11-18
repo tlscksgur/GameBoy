@@ -76,6 +76,8 @@
   .speaker i { width:5px; height:40px; border-radius:3px; background:var(--body-dark); box-shadow:inset 0 2px 3px #0008, 0 1px 0 #fff3; }
 
   button { cursor:pointer; touch-action:none; }
+  /* phones: no text selection, copy popup or tap flash on long press */
+  * { -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; }
   button.on { filter:brightness(1.4); transform:translateY(2px); }
   .help { color:#6b6f85; font-size:12px; text-align:center; margin-top:12px; }
   @media (hover:none) { .help { display:none; } }
