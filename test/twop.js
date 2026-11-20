@@ -4,7 +4,7 @@ const ctx2d = new Proxy({}, { get: () => () => {}, set: () => true });
 const sb = { document: { getElementById: () => ({ getContext: () => ctx2d }), querySelectorAll: () => [], createElement: () => ({ getContext: () => ctx2d }) },
   addEventListener() {}, requestAnimationFrame() {}, performance: { now: () => 0 }, localStorage: { getItem: () => null, setItem() {} }, console, Math, setTimeout() {} };
 vm.createContext(sb);
-for (const f of ['games.js', 'adventure.js', 'sprites.js', 'games2.js', 'games3.js', 'games4.js', 'games5.js', 'library.js', 'main.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), sb, { filename: f });
+for (const f of ['games.js', 'adventure.js', 'sprites.js', 'games2.js', 'games3.js', 'games4.js', 'games5.js', 'library.js', 'medals.js', 'main.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), sb, { filename: f });
 vm.runInContext(`
 const combo = (e, d, t = 0) => GAMES.findIndex(c => c[0] == e && c[4] == d && c[5] == t);
 const run = (i, bot, F = 20000) => { start(i); for (let f = 0; f < F && mode == 'play'; f++) { for (const k in held) press(k, 0); tick(); if (mode == 'play') bot(cur, f); }

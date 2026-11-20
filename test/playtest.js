@@ -12,7 +12,7 @@ const ctx = new Proxy({ fillStyle: '' }, {
 const sb = { document: { getElementById: () => ({ getContext: () => ctx }), querySelectorAll: () => [], createElement: () => ({ getContext: () => new Proxy({}, { get: () => () => {}, set: () => true }) }) },
   addEventListener() {}, requestAnimationFrame() {}, setTimeout() {}, performance, localStorage: { getItem: () => null, setItem() {} }, console, Math };
 vm.createContext(sb);
-for (const f of ['games.js', 'adventure.js', 'sprites.js', 'games2.js', 'games3.js', 'games4.js', 'games5.js', 'library.js', 'main.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), sb, { filename: f });
+for (const f of ['games.js', 'adventure.js', 'sprites.js', 'games2.js', 'games3.js', 'games4.js', 'games5.js', 'library.js', 'medals.js', 'main.js']) vm.runInContext(fs.readFileSync(path.join(__dirname, '..', f), 'utf8'), sb, { filename: f });
 const G = vm.runInContext('({ GAMES, start, tick, press, get mode() { return mode }, get result() { return result }, get cur() { return cur }, draw: () => cur.draw() })', sb);
 
 const find = (c, w, h) => rects.filter(r => r.c == c && (w == null || r.w == w) && (h == null || r.h == h));

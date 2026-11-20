@@ -47,9 +47,10 @@ const finish = (sc, won, m) => {
   result = { sc, won, m, nb: sc > (best[key(gi)] || 0), t: 0 };
   if (result.nb) { best[key(gi)] = sc; try { localStorage.setItem('pocket-best2', JSON.stringify(best)); } catch {} }
   mode = 'over';
+  achFinish(gi, sc, won, result.nb);
 };
 const end = (sc, m) => finish(sc, 0, m), win = (sc, m) => finish(sc, 1, m); // m: custom title, e.g. 'P1 WINS'
-const toOpts = () => { mode = 'opts'; [od, ot] = memo_[sel] || [1, 0]; orow = 0; };
+const toOpts = () => { achPet(); mode = 'opts'; [od, ot] = memo_[sel] || [1, 0]; orow = 0; };
 
 function update() {
   const N = LIB.length;
@@ -60,7 +61,9 @@ function update() {
     if (P('right')) sel = Math.min(N - 1, sel + 10);
     if (P('select')) { lang = lang == 'en' ? 'ko' : 'en'; try { localStorage.setItem('pocket-lang', lang); } catch {} }
     if (P('a') || P('start')) toOpts();
-  } else if (mode == 'opts') {
+    else if (P('b')) { achPet(); mode = 'medals'; }
+  } else if (mode == 'medals') achUpdate();
+  else if (mode == 'opts') {
     const G_ = LIB[sel], rows = G_.t ? 3 : 2;
     if (P('up')) orow = (orow + rows - 1) % rows;
     if (P('down')) orow = (orow + 1) % rows;
@@ -79,8 +82,10 @@ function update() {
   else if (P('b') || P('select')) toOpts();
 }
 
-function draw() {
+function draw() { draw0(); achToast(); } // medal popup sits on top of every screen
+function draw0() {
   R(0, 0, W, H, '#0d1021');
+  if (mode == 'medals') return achDraw();
   if (mode == 'menu') {
     const N = LIB.length, top = clamp(sel - 5, 0, Math.max(0, N - 11));
     for (let i = 0; i < 11 && top + i < N; i++) {
@@ -90,7 +95,7 @@ function draw() {
       if (hi) T(hi, W - 3, y, '#ffe66d', 'right');
     }
     hud('POCKET 100', (sel + 1) + '/' + N);
-    R(0, 132, W, 12, '#000'); T(tr('A:SELECT  SEL:한국어', 'A:선택  SEL:English'), W / 2, 134, '#889', 'center');
+    R(0, 132, W, 12, '#000'); T(tr('A:PLAY B:MEDALS SEL:한국어', 'A:선택 B:메달 SEL:English'), W / 2, 134, '#889', 'center');
     return;
   }
   if (mode == 'opts') {
@@ -122,6 +127,7 @@ function draw() {
 
 function tick() {
   FT++;
+  if (FT % 600 == 0) achPet(); // pets age while you play them
   for (const k of DIRK) hold[k] = held[k] ? (hold[k] || 0) + 1 : 0;
   update();
   for (const k in pressed) delete pressed[k];
